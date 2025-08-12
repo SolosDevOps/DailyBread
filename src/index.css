@@ -1,0 +1,51 @@
+@import "./styles/design.css";
+
+/* Responsive Base Styles */
+* {
+	box-sizing: border-box;
+}
+
+html {
+	/* Improve text rendering on mobile */
+	-webkit-text-size-adjust: 100%;
+	-ms-text-size-adjust: 100%;
+}
+
+body {
+	min-height: 100vh;
+	/* Improve font rendering */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	/* Prevent horizontal scroll on mobile */
+	overflow-x: hidden;
+}
+
+/* Responsive Images */
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* Touch targets on mobile */
+@media (max-width: 767px) {
+
+	button,
+	a,
+	input[type="button"],
+	input[type="submit"] {
+		min-height: 44px;
+		min-width: 44px;
+	}
+
+	/* Improve tap targets */
+	.db-action-btn {
+		min-height: 44px;
+	}
+
+	/* Better form inputs on mobile */
+	input,
+	textarea {
+		font-size: 16px;
+		/* Prevents zoom on iOS */
+	}
+}

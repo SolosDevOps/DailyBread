@@ -1,0 +1,704 @@
+/* Modern Profile Page - Facebook/Twitter inspired */
+
+.modern-profile-container {
+	margin-left: 240px;
+	max-width: 1200px;
+	margin-right: auto;
+	background: #f5f5f5;
+	min-height: calc(100vh - 60px);
+	transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 768px) {
+	.modern-profile-container {
+		margin-left: 0;
+		max-width: 100%;
+	}
+}
+
+/* Cover Photo & Header */
+.modern-profile-cover {
+	position: relative;
+	background: #ffffff;
+	border-bottom: 1px solid #dbdbdb;
+	margin-bottom: 0;
+}
+
+.modern-cover-photo {
+	height: 320px;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	position: relative;
+}
+
+.modern-profile-header {
+	padding: 20px 24px 0;
+	position: relative;
+}
+
+.modern-profile-main {
+	display: flex;
+	align-items: flex-end;
+	gap: 20px;
+	margin-bottom: 20px;
+}
+
+/* Avatar */
+.modern-avatar-wrapper {
+	position: relative;
+	margin-top: -60px;
+}
+
+.modern-avatar {
+	width: 120px;
+	height: 120px;
+	border-radius: 50%;
+	border: 4px solid #ffffff;
+	background: #f8f9fa;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 48px;
+	font-weight: 600;
+	color: #495057;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modern-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.modern-avatar-fallback {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+}
+
+.modern-avatar-edit {
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	width: 32px;
+	height: 32px;
+	background: #ffffff;
+	border: 2px solid #dbdbdb;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modern-avatar-edit:hover {
+	background: #f8f9fa;
+	transform: scale(1.05);
+}
+
+.modern-avatar-input {
+	display: none;
+}
+
+.modern-avatar-edit-icon {
+	font-size: 14px;
+}
+
+/* Profile Info */
+.modern-profile-info {
+	flex: 1;
+	padding-bottom: 8px;
+}
+
+.modern-profile-name {
+	font-size: 28px;
+	font-weight: 300;
+	color: #262626;
+	margin: 0 0 8px 0;
+	line-height: 1.2;
+}
+
+.modern-profile-bio {
+	font-size: 16px;
+	color: #262626;
+	margin: 0 0 12px 0;
+	line-height: 1.4;
+}
+
+.modern-profile-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 14px;
+	color: #8e8e8e;
+}
+
+.modern-profile-joined,
+.modern-profile-email {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* Action Buttons */
+.modern-profile-actions {
+	display: flex;
+	gap: 12px;
+	align-items: flex-end;
+	padding-bottom: 8px;
+}
+
+.modern-btn {
+	padding: 8px 16px;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 600;
+	border: none;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.modern-btn-primary {
+	background: #0095f6;
+	color: white;
+}
+
+.modern-btn-primary:hover {
+	background: #0084d6;
+}
+
+.modern-btn-outline {
+	background: transparent;
+	color: #262626;
+	border: 1px solid #dbdbdb;
+}
+
+.modern-btn-outline:hover {
+	background: #f8f9fa;
+}
+
+.modern-btn-ghost {
+	background: transparent;
+	color: #8e8e8e;
+	border: 1px solid #dbdbdb;
+}
+
+.modern-btn-ghost:hover {
+	background: #f8f9fa;
+}
+
+.modern-btn-lg {
+	padding: 12px 24px;
+	font-size: 16px;
+}
+
+/* Stats Bar */
+.modern-stats-bar {
+	display: flex;
+	gap: 40px;
+	padding: 16px 24px;
+	border-top: 1px solid #efefef;
+}
+
+.modern-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.modern-stat-number {
+	font-size: 18px;
+	font-weight: 600;
+	color: #262626;
+	line-height: 1.2;
+}
+
+.modern-stat-label {
+	font-size: 14px;
+	color: #8e8e8e;
+	font-weight: 400;
+	text-transform: lowercase;
+}
+
+/* Content Layout with Side Navigation */
+.modern-content-layout {
+	display: grid;
+	grid-template-columns: 280px 1fr;
+	gap: 24px;
+	padding: 24px 32px;
+	background: #f5f5f5;
+	min-height: 400px;
+}
+
+@media (max-width: 768px) {
+	.modern-content-layout {
+		grid-template-columns: 1fr;
+		padding: 16px;
+	}
+}
+
+/* Side Navigation */
+.modern-side-nav {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.modern-nav-item {
+	cursor: pointer;
+}
+
+.modern-nav-card {
+	background: #ffffff;
+	border: 1px solid #efefef;
+	border-radius: 12px;
+	padding: 16px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	transition: all 0.2s ease;
+	position: relative;
+}
+
+.modern-nav-card:hover {
+	background: #f8f9fa;
+	border-color: #dbdbdb;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.modern-nav-card.active {
+	background: #e3f2fd;
+	border-color: #0095f6;
+	box-shadow: 0 2px 8px rgba(0, 149, 246, 0.15);
+}
+
+.modern-nav-card.active::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 3px;
+	background: #0095f6;
+	border-radius: 0 2px 2px 0;
+}
+
+.modern-nav-icon {
+	font-size: 20px;
+	width: 24px;
+	text-align: center;
+}
+
+.modern-nav-text {
+	flex: 1;
+}
+
+.modern-nav-title {
+	font-size: 15px;
+	font-weight: 600;
+	color: #262626;
+	margin-bottom: 2px;
+}
+
+.modern-nav-subtitle {
+	font-size: 12px;
+	color: #8e8e8e;
+}
+
+.modern-nav-card.active .modern-nav-title {
+	color: #0095f6;
+}
+
+/* Main Content Area */
+.modern-main-content {
+	background: white;
+	border-radius: 12px;
+	border: 1px solid #dbdbdb;
+	min-height: 500px;
+	overflow: hidden;
+}
+
+/* Posts Section */
+.modern-posts-section {
+	padding: 24px;
+}
+
+.modern-posts-grid {
+	display: grid;
+	gap: 20px;
+}
+
+.modern-post-card {
+	background: #ffffff;
+	border: 1px solid #dbdbdb;
+	border-radius: 12px;
+	overflow: hidden;
+	transition: all 0.2s ease;
+}
+
+.modern-post-card:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.modern-post-card.editing {
+	border-color: #0095f6;
+	box-shadow: 0 0 0 1px #0095f6;
+}
+
+.modern-post-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 16px 20px 12px;
+	border-bottom: 1px solid #efefef;
+}
+
+.modern-post-date {
+	font-size: 12px;
+	color: #8e8e8e;
+	font-weight: 400;
+}
+
+.modern-post-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.modern-post-action-btn {
+	background: transparent;
+	border: none;
+	padding: 6px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 14px;
+	transition: all 0.2s ease;
+	color: #8e8e8e;
+}
+
+.modern-post-action-btn:hover {
+	background: #f8f9fa;
+	color: #262626;
+}
+
+.modern-post-delete:hover {
+	color: #ed4956;
+	background: #fef2f2;
+}
+
+.modern-post-title {
+	font-size: 20px;
+	font-weight: 600;
+	color: #262626;
+	margin: 0 0 12px 0;
+	padding: 0 20px;
+	line-height: 1.3;
+}
+
+.modern-post-content {
+	font-size: 15px;
+	color: #262626;
+	line-height: 1.5;
+	margin: 0;
+	padding: 0 20px 20px;
+	white-space: pre-wrap;
+}
+
+/* Post Edit Form */
+.modern-post-edit-form {
+	padding: 20px;
+}
+
+.modern-edit-title,
+.modern-edit-content {
+	width: 100%;
+	border: 1px solid #dbdbdb;
+	border-radius: 8px;
+	padding: 12px;
+	font-size: 15px;
+	font-family: inherit;
+	transition: border-color 0.2s ease;
+	margin-bottom: 12px;
+}
+
+.modern-edit-title:focus,
+.modern-edit-content:focus {
+	outline: none;
+	border-color: #0095f6;
+	box-shadow: 0 0 0 1px #0095f6;
+}
+
+.modern-edit-content {
+	resize: vertical;
+	min-height: 80px;
+	line-height: 1.5;
+}
+
+.modern-edit-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.modern-error-message {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	color: #dc2626;
+	padding: 12px;
+	border-radius: 8px;
+	font-size: 14px;
+	margin-bottom: 12px;
+}
+
+/* Empty State */
+.modern-empty-state {
+	text-align: center;
+	padding: 60px 20px;
+	color: #8e8e8e;
+}
+
+.modern-empty-icon {
+	font-size: 48px;
+	margin-bottom: 16px;
+	opacity: 0.6;
+}
+
+.modern-empty-state h3 {
+	font-size: 20px;
+	color: #262626;
+	margin: 0 0 8px 0;
+	font-weight: 600;
+}
+
+.modern-empty-state p {
+	font-size: 14px;
+	margin: 0;
+	line-height: 1.4;
+}
+
+/* About & Settings Sections */
+.modern-about-section,
+.modern-settings-section {
+	padding: 24px;
+}
+
+.modern-about-card,
+.modern-settings-card {
+	background: transparent;
+	border: none;
+	padding: 0;
+}
+
+.modern-section-title {
+	font-size: 20px;
+	font-weight: 600;
+	color: #262626;
+	margin: 0 0 20px 0;
+}
+
+.modern-about-grid {
+	display: grid;
+	gap: 16px;
+}
+
+.modern-about-item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.modern-about-label {
+	font-size: 12px;
+	color: #8e8e8e;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.modern-about-value {
+	font-size: 15px;
+	color: #262626;
+	line-height: 1.4;
+}
+
+/* Settings Form */
+.modern-settings-form {
+	display: flex;
+	flex-direction: column;
+	gap: 32px;
+}
+
+.modern-form-section {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.modern-form-section-title {
+	font-size: 16px;
+	font-weight: 600;
+	color: #262626;
+	margin: 0;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #efefef;
+}
+
+.modern-form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.modern-label {
+	font-size: 14px;
+	font-weight: 600;
+	color: #262626;
+}
+
+.modern-input,
+.modern-textarea {
+	width: 100%;
+	padding: 12px;
+	border: 1px solid #dbdbdb;
+	border-radius: 8px;
+	font-size: 15px;
+	font-family: inherit;
+	transition: all 0.2s ease;
+	background: #ffffff;
+}
+
+.modern-input:focus,
+.modern-textarea:focus {
+	outline: none;
+	border-color: #0095f6;
+	box-shadow: 0 0 0 1px #0095f6;
+}
+
+.modern-input.error,
+.modern-textarea.error {
+	border-color: #ed4956;
+	box-shadow: 0 0 0 1px #ed4956;
+}
+
+.modern-textarea {
+	resize: vertical;
+	min-height: 80px;
+	line-height: 1.5;
+}
+
+.modern-error-text {
+	color: #ed4956;
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.modern-error-banner {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	color: #dc2626;
+	padding: 16px;
+	border-radius: 8px;
+	font-size: 14px;
+	margin-bottom: 24px;
+}
+
+.modern-form-actions {
+	display: flex;
+	justify-content: flex-end;
+	padding-top: 16px;
+	border-top: 1px solid #efefef;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.modern-profile-container {
+		margin: 0;
+	}
+
+	.modern-cover-photo {
+		height: 200px;
+	}
+
+	.modern-profile-header {
+		padding: 16px;
+	}
+
+	.modern-profile-main {
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 16px;
+	}
+
+	.modern-avatar-wrapper {
+		margin-top: -40px;
+	}
+
+	.modern-avatar {
+		width: 80px;
+		height: 80px;
+		font-size: 32px;
+	}
+
+	.modern-profile-name {
+		font-size: 24px;
+	}
+
+	.modern-stats-bar {
+		gap: 20px;
+		padding: 12px 16px;
+	}
+
+	.modern-tab {
+		padding: 12px 16px;
+		font-size: 12px;
+	}
+
+	.modern-content-area {
+		padding: 16px;
+	}
+
+	.modern-post-card {
+		border-radius: 8px;
+	}
+
+	.modern-about-card,
+	.modern-settings-card {
+		padding: 20px;
+	}
+}
+
+@media (max-width: 480px) {
+	.modern-profile-main {
+		gap: 12px;
+	}
+
+	.modern-avatar {
+		width: 64px;
+		height: 64px;
+		font-size: 24px;
+	}
+
+	.modern-profile-name {
+		font-size: 20px;
+	}
+
+	.modern-stats-bar {
+		gap: 12px;
+	}
+
+	.modern-stat-number {
+		font-size: 16px;
+	}
+
+	.modern-stat-label {
+		font-size: 12px;
+	}
+}

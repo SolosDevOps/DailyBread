@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  bio       String?
+  profilePicture String?
+  createdAt DateTime @default(now())
+  posts     Post[]
+  likes     Like[]
+  comments  Comment[]
+  friendRequestsSent     FriendRequest[] @relation("friendRequestsFrom")
+  friendRequestsReceived FriendRequest[] @relation("friendRequestsTo")
+  friendshipsA           Friendship[]    @relation("friendshipUserA")
+  friendshipsB           Friendship[]    @relation("friendshipUserB")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  likes     Like[]
+  comments  Comment[]
+  createdAt DateTime @default(now())
+}
+
+model Like {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  postId Int
+  user   User @relation(fields: [userId], references: [id])
+  post   Post @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model Comment {
+  id      Int    @id @default(autoincrement())
+  content String
+  userId  Int
+  postId  Int
+  user    User   @relation(fields: [userId], references: [id])
+  post    Post   @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model FriendRequest {
+  id        Int      @id @default(autoincrement())
+  fromId    Int
+  toId      Int
+  status    String
+  createdAt DateTime @default(now())
+  fromUser  User     @relation("friendRequestsFrom", fields: [fromId], references: [id])
+  toUser    User     @relation("friendRequestsTo", fields: [toId], references: [id])
+}
+
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  userA     Int
+  userB     Int
+  createdAt DateTime @default(now())
+  userAUser User     @relation("friendshipUserA", fields: [userA], references: [id])
+  userBUser User     @relation("friendshipUserB", fields: [userB], references: [id])
+
+  @@unique([userA, userB])
+}
