@@ -33,78 +33,78 @@ const Register: React.FC = () => {
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1 className="auth-title font-serif">Daily Bread</h1>
-          <p className="auth-subtitle">Join our Christian community today.</p>
+    <div className="register-container">
+      <div className="register-card">
+        {/* Left Side - Welcome Section */}
+        <div className="register-welcome">
+          <div className="register-welcome-content">
+            <h1 className="register-welcome-title">Welcome Back!</h1>
+            <p className="register-welcome-text">
+              To keep connected with us please login with your personal info
+            </p>
+            <Link to="/login" className="register-welcome-btn">
+              Sign In
+            </Link>
+          </div>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {/* Right Side - Form Section */}
+        <div className="register-form-section">
+          <div className="register-form-content">
+            <h2 className="register-form-title">Create Account</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="form-group">
-            <label htmlFor="username" className="label">
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              className="input"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-              required
-            />
+            <div className="register-social-buttons">
+              <button className="register-social-btn">f</button>
+              <button className="register-social-btn">G+</button>
+              <button className="register-social-btn">in</button>
+            </div>
+
+            <p className="register-form-subtitle">
+              or use your email for registration:
+            </p>
+
+            {error && <div className="register-error">{error}</div>}
+
+            <form onSubmit={handleSubmit} className="register-form">
+              <input
+                type="text"
+                placeholder="Name"
+                className="register-input"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                required
+              />
+
+              <input
+                type="email"
+                placeholder="Email"
+                className="register-input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+              />
+
+              <input
+                type="password"
+                placeholder="Password"
+                className="register-input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="register-button"
+              >
+                {submitting ? "Creating..." : "SIGN UP"}
+              </button>
+            </form>
           </div>
-
-          <div className="form-group">
-            <label htmlFor="email" className="label">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password" className="label">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn btn-lg w-full"
-            style={{ width: "100%" }}
-          >
-            {submitting ? "Creating account..." : "Create Account"}
-          </button>
-        </form>
-
-        <div className="text-center mt-6">
-          <p className="text-sm muted">
-            Already have an account?{" "}
-            <Link to="/login" className="auth-link">
-              Sign in
-            </Link>
-          </p>
         </div>
       </div>
     </div>

@@ -32,63 +32,66 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1 className="auth-title font-serif">Daily Bread</h1>
-          <p className="auth-subtitle">Welcome back. Sign in to continue.</p>
+    <div className="login-container">
+      <div className="login-card">
+        {/* Left Side - Form Section */}
+        <div className="login-form-section">
+          <div className="login-form-content">
+            <h2 className="login-form-title">Sign in to Account</h2>
+
+            <div className="login-social-buttons">
+              <button className="login-social-btn">f</button>
+              <button className="login-social-btn">G+</button>
+              <button className="login-social-btn">in</button>
+            </div>
+
+            <p className="login-form-subtitle">or use your email account:</p>
+
+            {error && <div className="login-error">{error}</div>}
+
+            <form onSubmit={handleSubmit} className="login-form">
+              <input
+                type="text"
+                placeholder="Email"
+                className="login-input"
+                value={emailOrUsername}
+                onChange={(e) => setEmailOrUsername(e.target.value)}
+                autoComplete="username"
+                required
+              />
+
+              <input
+                type="password"
+                placeholder="Password"
+                className="login-input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="login-button"
+              >
+                {submitting ? "Signing in..." : "SIGN IN"}
+              </button>
+            </form>
+          </div>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="form-group">
-            <label htmlFor="emailOrUsername" className="label">
-              Email or Username
-            </label>
-            <input
-              type="text"
-              id="emailOrUsername"
-              className="input"
-              value={emailOrUsername}
-              onChange={(e) => setEmailOrUsername(e.target.value)}
-              autoComplete="username"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password" className="label">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn btn-lg w-full"
-            style={{ width: "100%" }}
-          >
-            {submitting ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-
-        <div className="text-center mt-6">
-          <p className="text-sm muted">
-            Don't have an account?{" "}
-            <Link to="/register" className="auth-link">
-              Sign up
+        {/* Right Side - Welcome Section */}
+        <div className="login-welcome">
+          <div className="login-welcome-content">
+            <h1 className="login-welcome-title">Hello, Friend!</h1>
+            <p className="login-welcome-text">
+              Enter your personal details and start journey with us
+            </p>
+            <Link to="/register" className="login-welcome-btn">
+              Sign Up
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>
