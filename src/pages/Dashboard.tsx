@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useSidebar } from "../context/SidebarContext";
@@ -29,7 +29,7 @@ interface Comment {
   content: string;
   createdAt: string;
   userId: number;
-  user: { id: number; username: string; profilePicture?: string };
+  user?: { id: number; username: string; profilePicture?: string };
 }
 
 interface Post {
@@ -131,6 +131,7 @@ const CreatePost: React.FC<{ onCreated: () => void }> = ({ onCreated }) => {
 const PostsList: React.FC = () => {
   const { user } = useAuth();
   const { refreshKey } = useFeed();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -294,6 +295,18 @@ const PostsList: React.FC = () => {
     }
   };
 
+  const deleteComment = async (commentId: number, postId: number) => {
+    try {
+      await api.del(`/comments/${commentId}`);
+      // Reload comments for this post to reflect the deletion
+      loadComments(postId);
+      // Silent refresh to update comment count without jumping
+      await load({ silent: true, preserveScroll: true });
+    } catch (e: any) {
+      console.error("Failed to delete comment:", e);
+    }
+  };
+
   const isLiked = (post: Post) => {
     return post.likes?.some((like) => like.userId === user?.id) || false;
   };
@@ -395,6 +408,10 @@ const PostsList: React.FC = () => {
     // Here you could also make an API call to save/unsave the post
   };
 
+  const navigateToProfile = (userId: number) => {
+    navigate(`/profile/${userId}`);
+  };
+
   const editPost = (post: Post) => {
     closeDropdown();
     startEdit(post);
@@ -472,7 +489,12 @@ const PostsList: React.FC = () => {
         posts.map((post) => (
           <article key={post.id} className="db-post">
             <div className="db-post-header">
-              <div className="db-post-avatar">
+              <div
+                className="db-post-avatar"
+                onClick={() => navigateToProfile(post.author.id)}
+                style={{ cursor: "pointer" }}
+                title={`Go to ${post.author.username}'s profile`}
+              >
                 {post.author.profilePicture ? (
                   <img
                     src={post.author.profilePicture}
@@ -486,7 +508,14 @@ const PostsList: React.FC = () => {
                 )}
               </div>
               <div className="db-post-meta">
-                <div className="db-post-author">{post.author.username}</div>
+                <div
+                  className="db-post-author"
+                  onClick={() => navigateToProfile(post.author.id)}
+                  style={{ cursor: "pointer" }}
+                  title={`Go to ${post.author.username}'s profile`}
+                >
+                  {post.author.username}
+                </div>
                 <div className="db-post-time">{timeAgo(post.createdAt)}</div>
               </div>
               <div className="db-post-dropdown">
@@ -838,22 +867,65 @@ const PostsList: React.FC = () => {
                     post.comments?.map((comment) => (
                       <div key={comment.id} className="db-comment">
                         <div className="db-comment-avatar">
-                          {comment.user.profilePicture ? (
+                          {comment.user?.profilePicture ? (
                             <img
                               src={comment.user.profilePicture}
-                              alt={`${comment.user.username}'s profile`}
+                              alt={`${
+                                comment.user.username || "User"
+                              }'s profile`}
                               className="db-avatar-img"
                             />
                           ) : (
                             <div className="db-avatar-placeholder">
-                              {comment.user.username.charAt(0).toUpperCase()}
+                              {comment.user?.username
+                                ?.charAt(0)
+                                .toUpperCase() || "?"}
                             </div>
                           )}
                         </div>
                         <div className="db-comment-content">
                           <div className="db-comment-bubble">
-                            <div className="db-comment-author">
-                              {comment.user.username}
+                            <div className="db-comment-header">
+                              <div className="db-comment-author">
+                                {comment.user?.username || "Unknown User"}
+                              </div>
+                              {user?.id === comment.userId && (
+                                <button
+                                  type="button"
+                                  className="db-comment-delete"
+                                  onClick={() =>
+                                    deleteComment(comment.id, post.id)
+                                  }
+                                  title="Delete comment"
+                                  aria-label="Delete comment"
+                                >
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <polyline points="3,6 5,6 21,6"></polyline>
+                                    <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                                    <line
+                                      x1="10"
+                                      y1="11"
+                                      x2="10"
+                                      y2="17"
+                                    ></line>
+                                    <line
+                                      x1="14"
+                                      y1="11"
+                                      x2="14"
+                                      y2="17"
+                                    ></line>
+                                  </svg>
+                                </button>
+                              )}
                             </div>
                             <div className="db-comment-text">
                               {comment.content}

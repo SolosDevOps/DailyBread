@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 
-// Follow controller with Prisma client
+// Follow controller with Prisma client - updated
 const prisma = new PrismaClient();
 
 export async function followUser(req: Request, res: Response) {

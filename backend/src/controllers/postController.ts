@@ -26,28 +26,39 @@ export async function createPost(req: Request, res: Response) {
 export async function getPosts(req: Request, res: Response) {
   const user = req.user;
 
+  // Require authentication to view posts
+  if (!user) {
+    return res
+      .status(401)
+      .json({ error: "Authentication required to view posts" });
+  }
+
   try {
-    let whereClause = {};
+    console.log(`User ${user.username} (ID: ${user.id}) is requesting posts`);
 
-    // If user is authenticated, show posts from followed users + own posts
-    if (user) {
-      // Get list of users this user is following
-      const following = await prisma.follow.findMany({
-        where: { followerId: user.id },
-        select: { followingId: true },
-      });
+    // Get list of users this user is following
+    const following = await prisma.follow.findMany({
+      where: { followerId: user.id },
+      select: { followingId: true },
+    });
 
-      const followingIds = following.map((f: any) => f.followingId);
-      // Include user's own posts and posts from followed users
-      followingIds.push(user.id);
+    console.log(
+      `User is following: ${following
+        .map((f: any) => f.followingId)
+        .join(", ")}`
+    );
 
-      whereClause = {
-        authorId: {
-          in: followingIds,
-        },
-      };
-    }
-    // If not authenticated, show all posts (public feed)
+    const followingIds = following.map((f: any) => f.followingId);
+    // Include user's own posts and posts from followed users
+    followingIds.push(user.id);
+
+    console.log(`Will show posts from user IDs: ${followingIds.join(", ")}`);
+
+    const whereClause = {
+      authorId: {
+        in: followingIds,
+      },
+    };
 
     const posts = await prisma.post.findMany({
       where: whereClause,
@@ -63,6 +74,16 @@ export async function getPosts(req: Request, res: Response) {
         comments: {
           select: {
             id: true,
+            content: true,
+            createdAt: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+                profilePicture: true,
+              },
+            },
           },
         },
         _count: {
@@ -73,6 +94,13 @@ export async function getPosts(req: Request, res: Response) {
         },
       },
     });
+
+    console.log(
+      `Returning ${posts.length} posts. Post authors: ${posts
+        .map((p) => `${p.author.username} (ID: ${p.author.id})`)
+        .join(", ")}`
+    );
+
     return res.json(posts);
   } catch (err: any) {
     return res.status(400).json({ error: err.message });

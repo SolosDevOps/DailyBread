@@ -102,7 +102,7 @@ export async function deleteComment(req: Request, res: Response) {
     }
 
     const payload = jwt.verify(token, JWT_SECRET) as { id: number };
-    const commentId = parseInt(req.params.id);
+    const commentId = parseInt(req.params.commentId);
 
     if (!commentId) {
       return res.status(400).json({ error: "Invalid comment ID" });
