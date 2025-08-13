@@ -3,6 +3,7 @@ import { useParams, Navigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import { useSidebar } from "../../context/SidebarContext";
+import { useFeed } from "../../context/FeedContext";
 import Navbar from "../../components/Navbar";
 import LeftSidebar from "../../components/LeftSidebar";
 import "../../styles/ModernProfile.css";
@@ -17,6 +18,8 @@ interface ProfileUser {
   createdAt?: string;
   postsCount?: number;
   friendsCount?: number;
+  followersCount?: number;
+  followingCount?: number;
 }
 
 interface Post {
@@ -40,6 +43,7 @@ const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser, refresh } = useAuth();
   const { sidebarCollapsed } = useSidebar();
+  const { refreshFeed } = useFeed();
   const { showToast } = useToast();
   const [profile, setProfile] = useState<ProfileUser | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -48,6 +52,8 @@ const ProfilePage: React.FC = () => {
   const [editContent, setEditContent] = useState("");
   const [postActionLoading, setPostActionLoading] = useState(false);
   const [postActionError, setPostActionError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [followLoading, setFollowLoading] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -172,6 +178,11 @@ const ProfilePage: React.FC = () => {
           setProfile(userProfile);
           setIsOwnProfile(false);
 
+          // Check follow status for other users
+          if (currentUser) {
+            await checkFollowStatus(userProfile.id);
+          }
+
           // Load user's posts
           try {
             const userPosts = await api.get<Post[]>(`/users/${id}/posts`);
@@ -191,6 +202,47 @@ const ProfilePage: React.FC = () => {
       setError(err.message || "Failed to load profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkFollowStatus = async (userId: number) => {
+    if (!currentUser || currentUser.id === userId) return;
+
+    try {
+      const response = await api.get<{ isFollowing: boolean }>(
+        `/follow/${userId}/status`
+      );
+      setIsFollowing(response.isFollowing);
+    } catch (error) {
+      console.error("Failed to check follow status:", error);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!profile || !currentUser || currentUser.id === profile.id) return;
+
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await api.del(`/follow/${profile.id}`);
+        setIsFollowing(false);
+        showToast({ message: "Unfollowed successfully", type: "success" });
+        // Refresh the feed to remove unfollowed user's posts
+        refreshFeed();
+      } else {
+        await api.post(`/follow/${profile.id}`);
+        setIsFollowing(true);
+        showToast({ message: "Followed successfully", type: "success" });
+        // Refresh the feed to include followed user's posts
+        refreshFeed();
+      }
+    } catch (error: any) {
+      showToast({
+        message: error.message || "Failed to update follow status",
+        type: "error",
+      });
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -473,8 +525,16 @@ const ProfilePage: React.FC = () => {
                     {isEditing ? "Cancel" : "Edit Profile"}
                   </button>
                 ) : (
-                  <button className="modern-btn modern-btn-outline">
-                    Follow
+                  <button
+                    className="modern-btn modern-btn-outline"
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                  >
+                    {followLoading
+                      ? "..."
+                      : isFollowing
+                      ? "Unfollow"
+                      : "Follow"}
                   </button>
                 )}
               </div>
@@ -490,13 +550,13 @@ const ProfilePage: React.FC = () => {
               </div>
               <div className="modern-stat">
                 <span className="modern-stat-number">
-                  {profile.friendsCount || 0}
+                  {profile.followingCount || 0}
                 </span>
                 <span className="modern-stat-label">Following</span>
               </div>
               <div className="modern-stat">
                 <span className="modern-stat-number">
-                  {profile.friendsCount || 0}
+                  {profile.followersCount || 0}
                 </span>
                 <span className="modern-stat-label">Followers</span>
               </div>

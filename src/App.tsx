@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import "./styles/App.css";
 import { ToastProvider } from "./context/ToastContext";
+import { FeedProvider } from "./context/FeedContext";
 
 const Home: React.FC = () => (
   <div className="auth-container">
@@ -36,21 +37,23 @@ const App: React.FC = () => {
     <AuthProvider>
       <SidebarProvider>
         <ToastProvider>
-          <BrowserRouter
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true,
-            }}
-          >
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile/:id" element={<ProfilePage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
+          <FeedProvider>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile/:id" element={<ProfilePage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </FeedProvider>
         </ToastProvider>
       </SidebarProvider>
     </AuthProvider>

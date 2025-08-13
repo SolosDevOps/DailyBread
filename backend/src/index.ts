@@ -9,6 +9,7 @@ import searchRoutes from "./routes/search";
 import usersRoutes from "./routes/users";
 import likesRoutes from "./routes/likes";
 import commentsRoutes from "./routes/comments";
+import followRoutes from "./routes/follow";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/search", searchRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/likes", likesRoutes);
 app.use("/api/comments", commentsRoutes);
+app.use("/api/follow", followRoutes);
 
 const router = express.Router();
 

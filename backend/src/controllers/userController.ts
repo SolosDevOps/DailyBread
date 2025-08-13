@@ -66,6 +66,14 @@ export async function getUserById(req: Request, res: Response) {
       where: { authorId: userId },
     });
 
+    // Count followers and following
+    const followersCount = await prisma.follow.count({
+      where: { followingId: userId },
+    });
+    const followingCount = await prisma.follow.count({
+      where: { followerId: userId },
+    });
+
     // Transform the response to match frontend expectations
     const transformedUser = {
       id: user.id,
@@ -75,6 +83,8 @@ export async function getUserById(req: Request, res: Response) {
       createdAt: user.createdAt,
       postsCount: postsCount,
       friendsCount: 0, // TODO: Implement proper friend counting
+      followersCount: followersCount,
+      followingCount: followingCount,
     };
 
     return res.json(transformedUser);

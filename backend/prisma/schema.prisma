@@ -22,6 +22,8 @@ model User {
   friendRequestsReceived FriendRequest[] @relation("friendRequestsTo")
   friendshipsA           Friendship[]    @relation("friendshipUserA")
   friendshipsB           Friendship[]    @relation("friendshipUserB")
+  followers              Follow[]        @relation("UserFollowers")
+  following              Follow[]        @relation("UserFollowing")
 }
 
 model Post {
@@ -75,4 +77,15 @@ model Friendship {
   userBUser User     @relation("friendshipUserB", fields: [userB], references: [id])
 
   @@unique([userA, userB])
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id])
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
 }

@@ -27,7 +27,10 @@
 	gap: 32px;
 	max-width: 1400px;
 	margin: 0 auto;
-	/* Remove margin-left adjustment - keep dashboard centered regardless of sidebar state */
+	margin-left: 320px;
+	/* Fixed position: sidebar width (280px) + gap (40px) */
+	transition: none;
+	/* No transition since position stays fixed */
 }
 
 .db-main {
@@ -778,6 +781,8 @@
 		max-width: 680px;
 		gap: 20px;
 		padding: 16px;
+		margin-left: 0;
+		/* Center on tablet and mobile */
 	}
 
 	.db-main {

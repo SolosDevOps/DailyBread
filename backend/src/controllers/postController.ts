@@ -24,8 +24,33 @@ export async function createPost(req: Request, res: Response) {
 }
 
 export async function getPosts(req: Request, res: Response) {
+  const user = req.user;
+
   try {
+    let whereClause = {};
+
+    // If user is authenticated, show posts from followed users + own posts
+    if (user) {
+      // Get list of users this user is following
+      const following = await prisma.follow.findMany({
+        where: { followerId: user.id },
+        select: { followingId: true },
+      });
+
+      const followingIds = following.map((f: any) => f.followingId);
+      // Include user's own posts and posts from followed users
+      followingIds.push(user.id);
+
+      whereClause = {
+        authorId: {
+          in: followingIds,
+        },
+      };
+    }
+    // If not authenticated, show all posts (public feed)
+
     const posts = await prisma.post.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       include: {
         author: { select: { id: true, username: true, profilePicture: true } },

@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useSidebar } from "../context/SidebarContext";
+import { useFeed } from "../context/FeedContext";
 import Navbar from "../components/Navbar";
 import LeftSidebar from "../components/LeftSidebar";
 import "../styles/Dashboard.css";
@@ -129,6 +130,7 @@ const CreatePost: React.FC<{ onCreated: () => void }> = ({ onCreated }) => {
 
 const PostsList: React.FC = () => {
   const { user } = useAuth();
+  const { refreshKey } = useFeed();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -306,7 +308,7 @@ const PostsList: React.FC = () => {
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, refreshKey]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
