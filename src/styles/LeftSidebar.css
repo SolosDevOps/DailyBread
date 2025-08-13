@@ -1,10 +1,7 @@
-/* Left Sidebar Styles - Modern Professional Design */
-/* (file content replaced below) */
-
-/* Minimal Professional Sidebar Redesign */
+/* Elegant Professional Sidebar Design */
 
 /* Root layout */
-.left-sidebar.minimal {
+.elegant-sidebar {
 	width: 280px;
 	position: fixed;
 	top: 5rem;
@@ -12,13 +9,329 @@
 	bottom: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 1.25rem;
-	padding: 1.25rem 1.25rem 2rem;
-	background: #fcfcfc;
-	border-right: 1px solid #eceff2;
+	gap: 1.5rem;
+	padding: 1.5rem 1rem 2rem;
+	background: linear-gradient(180deg, #fafbfc 0%, #f5f7fa 100%);
+	border-right: 1px solid #e2e8f0;
 	overflow-y: auto;
-	font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Oxygen;
-	transition: width .28s ease, transform .28s ease, opacity .25s ease;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	transition: transform 0.3s ease, opacity 0.3s ease;
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.elegant-sidebar.is-collapsed {
+	transform: translateX(-100%);
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* Scrollbar styling */
+.elegant-sidebar::-webkit-scrollbar {
+	width: 6px;
+}
+
+.elegant-sidebar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.elegant-sidebar::-webkit-scrollbar-thumb {
+	background: #cbd5e0;
+	border-radius: 3px;
+}
+
+.elegant-sidebar::-webkit-scrollbar-thumb:hover {
+	background: #a0aec0;
+}
+
+/* User Profile Section */
+.sidebar-profile {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 1rem;
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+	border: 1px solid #e2e8f0;
+}
+
+.profile-avatar {
+	position: relative;
+}
+
+.avatar-img {
+	width: 48px;
+	height: 48px;
+	border-radius: 12px;
+	object-fit: cover;
+	border: 2px solid #e2e8f0;
+}
+
+.avatar-placeholder {
+	width: 48px;
+	height: 48px;
+	border-radius: 12px;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-weight: 600;
+	font-size: 1.25rem;
+	border: 2px solid #e2e8f0;
+}
+
+.profile-info {
+	flex: 1;
+}
+
+.profile-name {
+	font-size: 1rem;
+	font-weight: 600;
+	color: #2d3748;
+	margin: 0 0 0.25rem 0;
+	line-height: 1.2;
+}
+
+.profile-status {
+	font-size: 0.75rem;
+	color: #68d391;
+	margin: 0;
+	font-weight: 500;
+}
+
+/* Quick Stats */
+.sidebar-stats {
+	background: white;
+	border-radius: 12px;
+	padding: 1rem;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+	border: 1px solid #e2e8f0;
+}
+
+.stats-loading {
+	text-align: center;
+	color: #a0aec0;
+	font-size: 0.875rem;
+	padding: 1rem 0;
+}
+
+.stats-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.75rem;
+}
+
+.stat-item {
+	text-align: center;
+	padding: 0.75rem 0.5rem;
+	border-radius: 8px;
+	background: #f7fafc;
+	transition: background-color 0.2s ease;
+}
+
+.stat-item:hover {
+	background: #edf2f7;
+}
+
+.stat-value {
+	display: block;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: #2d3748;
+	line-height: 1;
+}
+
+.stat-label {
+	display: block;
+	font-size: 0.75rem;
+	color: #718096;
+	margin-top: 0.25rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+/* Navigation Menu */
+.sidebar-nav {
+	background: white;
+	border-radius: 12px;
+	padding: 1rem;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+	border: 1px solid #e2e8f0;
+}
+
+.nav-section {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.nav-title {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: #718096;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	margin: 0 0 0.5rem 0;
+}
+
+.nav-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.nav-item {
+	margin: 0;
+}
+
+.nav-link {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.75rem;
+	border-radius: 8px;
+	text-decoration: none;
+	color: #4a5568;
+	font-weight: 500;
+	font-size: 0.875rem;
+	transition: all 0.2s ease;
+	background: transparent;
+	border: none;
+	width: 100%;
+	cursor: pointer;
+}
+
+.nav-link:hover {
+	background: #f7fafc;
+	color: #2d3748;
+	transform: translateX(2px);
+}
+
+.nav-link.active {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.nav-link.active:hover {
+	transform: translateX(0);
+	box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.nav-icon {
+	font-size: 1.125rem;
+	width: 20px;
+	text-align: center;
+}
+
+.nav-label {
+	flex: 1;
+}
+
+/* Daily Verse Section */
+.sidebar-verse {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-radius: 12px;
+	padding: 1.25rem;
+	color: white;
+	box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+	position: relative;
+	margin-bottom: 1rem;
+}
+
+.verse-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1rem;
+	position: relative;
+	z-index: 2;
+}
+
+.verse-title {
+	font-size: 0.875rem;
+	font-weight: 600;
+	margin: 0;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: white !important;
+}
+
+.verse-copy-btn {
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	border-radius: 6px;
+	color: white;
+	padding: 0.375rem 0.75rem;
+	font-size: 0.875rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	height: 36px;
+}
+
+.verse-copy-btn:hover {
+	background: rgba(255, 255, 255, 0.3);
+	transform: scale(1.05);
+}
+
+.verse-content {
+	margin: 0;
+	position: relative;
+	z-index: 2;
+}
+
+.verse-text {
+	font-size: 0.875rem;
+	line-height: 1.6;
+	margin: 0 0 0.75rem 0;
+	font-style: italic;
+	color: white !important;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.verse-reference {
+	font-size: 0.75rem;
+	font-weight: 600;
+	font-style: normal;
+	color: white !important;
+	display: block;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Quick Actions CSS removed since component no longer uses them */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.elegant-sidebar {
+		width: 100%;
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1000;
+		padding: 1rem;
+	}
+
+	.elegant-sidebar.is-collapsed {
+		transform: translateY(-100%);
+	}
+
+	.stats-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	.actions-grid {
+		grid-template-columns: 1fr;
+	}
 }
 
 .left-sidebar.minimal.is-collapsed {
@@ -285,38 +598,7 @@
 	color: #8a939a;
 }
 
-/* Verse */
-.ls-block.verse {
-	background: #fff;
-	border: 1px solid #eceff2;
-}
-
-.ls-verse {
-	margin: 0;
-	display: flex;
-	flex-direction: column;
-	gap: .4rem;
-}
-
-.ls-verse-text {
-	font-size: .72rem;
-	line-height: 1.4;
-	color: #444;
-	font-style: italic;
-}
-
-.ls-verse-ref {
-	font-size: .55rem;
-	letter-spacing: .08em;
-	text-transform: uppercase;
-	color: #8b5a3c;
-	font-weight: 600;
-}
-
-.ls-verse-actions {
-	display: flex;
-	gap: .35rem;
-}
+/* Legacy styles removed - using .sidebar-verse instead */
 
 .ls-icon-btn {
 	background: #f4f5f6;
@@ -808,26 +1090,7 @@
 	z-index: 1;
 }
 
-/* Daily Verse */
-.verse-card {
-	background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-	border: 1px solid #e9ecef;
-}
-
-.verse-text {
-	font-style: italic;
-	color: #495057;
-	margin-bottom: 0.75rem;
-	line-height: 1.6;
-	font-size: 0.875rem;
-}
-
-.verse-reference {
-	font-weight: 600;
-	color: #8b5a3c;
-	font-size: 0.75rem;
-	text-align: right;
-}
+/* Legacy verse card styles removed - using .sidebar-verse instead */
 
 /* Events Section */
 .events-list {

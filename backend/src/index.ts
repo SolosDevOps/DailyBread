@@ -10,6 +10,8 @@ import usersRoutes from "./routes/users";
 import likesRoutes from "./routes/likes";
 import commentsRoutes from "./routes/comments";
 import followRoutes from "./routes/follow";
+import notificationRoutes from "./routes/notifications";
+import { cleanupSeenNotifications } from "./controllers/notificationController";
 
 const app = express();
 
@@ -31,6 +33,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/likes", likesRoutes);
 app.use("/api/comments", commentsRoutes);
 app.use("/api/follow", followRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 const router = express.Router();
 
@@ -65,5 +68,8 @@ if (require.main === module) {
   const PORT = process.env.PORT || 4001;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+
+    // Run cleanup every hour
+    setInterval(cleanupSeenNotifications, 60 * 60 * 1000);
   });
 }

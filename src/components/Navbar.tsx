@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useSidebar } from "../context/SidebarContext";
+import NotificationBell from "./NotificationBell";
 import "../styles/Navbar.css";
 
 interface UserResult {
@@ -397,6 +398,7 @@ const Navbar: React.FC<NavbarProps> = () => {
 
         {/* Mobile Menu Button - Right Side */}
         <div className="navbar-right-group">
+          {user && <NotificationBell />}
           <button
             type="button"
             className="navbar-mobile-menu-btn"

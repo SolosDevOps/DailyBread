@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
+import { createNotification } from "./notificationController";
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -33,6 +34,14 @@ export async function createComment(req: Request, res: Response) {
     // Check if post exists
     const post = await prisma.post.findUnique({
       where: { id: postId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
     });
 
     if (!post) {
@@ -55,6 +64,22 @@ export async function createComment(req: Request, res: Response) {
         },
       },
     });
+
+    // Create notification for post author
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { username: true },
+    });
+
+    if (user) {
+      await createNotification(
+        post.author.id,
+        payload.id,
+        "comment",
+        `${user.username} commented on your post "${post.title}"`,
+        postId
+      );
+    }
 
     return res.status(201).json(comment);
   } catch (error) {

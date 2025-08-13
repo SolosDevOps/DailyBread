@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { createNotification } from "./notificationController";
 
 // Follow controller with Prisma client - updated
 const prisma = new PrismaClient();
@@ -50,6 +51,14 @@ export async function followUser(req: Request, res: Response) {
         followingId: targetUserId,
       },
     });
+
+    // Create notification for the followed user
+    await createNotification(
+      targetUserId,
+      user.id,
+      "follow",
+      `${user.username} started following you`
+    );
 
     res.json({ message: "Successfully followed user" });
   } catch (error: any) {

@@ -24,6 +24,8 @@ model User {
   friendshipsB           Friendship[]    @relation("friendshipUserB")
   followers              Follow[]        @relation("UserFollowers")
   following              Follow[]        @relation("UserFollowing")
+  notifications          Notification[]  @relation("UserNotifications")
+  notificationsTriggered Notification[]  @relation("NotificationTrigger")
 }
 
 model Post {
@@ -34,6 +36,7 @@ model Post {
   author    User     @relation(fields: [authorId], references: [id])
   likes     Like[]
   comments  Comment[]
+  notifications Notification[]
   createdAt DateTime @default(now())
 }
 
@@ -88,4 +91,19 @@ model Follow {
   following   User     @relation("UserFollowing", fields: [followingId], references: [id])
 
   @@unique([followerId, followingId])
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  triggeredBy Int
+  type        String   // 'like', 'comment', 'follow'
+  message     String
+  postId      Int?     // null for follows
+  seen        Boolean  @default(false)
+  seenAt      DateTime?
+  createdAt   DateTime @default(now())
+  user        User     @relation("UserNotifications", fields: [userId], references: [id])
+  triggerUser User     @relation("NotificationTrigger", fields: [triggeredBy], references: [id])
+  post        Post?    @relation(fields: [postId], references: [id])
 }

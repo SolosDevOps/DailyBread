@@ -391,9 +391,12 @@
 	position: relative;
 }
 
-.db-action-btn:active {
-	background: var(--fb-active);
-	transition: background-color 0.1s ease;
+/* Removed .db-action-btn:active background to eliminate oval click effect */
+
+.db-action-btn:hover,
+.db-action-btn:focus {
+	background: none;
+	outline: none;
 }
 
 .db-action-btn.liked {

@@ -1,24 +1,96 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/LeftSidebar.css";
-
-interface QuickStat {
-  label: string;
-  value: number;
-  icon: string;
-}
 
 interface DailyVerse {
   text: string;
   reference: string;
 }
 
-interface Suggestion {
-  id: number;
-  username: string;
-  mutual?: number;
-}
+// Public-domain (KJV) daily verses rotation
+const DAILY_VERSES: DailyVerse[] = [
+  {
+    text: "For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end.",
+    reference: "Jeremiah 29:11 (KJV)",
+  },
+  {
+    text: "Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.",
+    reference: "Proverbs 3:5-6 (KJV)",
+  },
+  {
+    text: "The LORD is my shepherd; I shall not want.",
+    reference: "Psalm 23:1 (KJV)",
+  },
+  {
+    text: "Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee; yea, I will help thee; yea, I will uphold thee with the right hand of my righteousness.",
+    reference: "Isaiah 41:10 (KJV)",
+  },
+  {
+    text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
+    reference: "John 3:16 (KJV)",
+  },
+  {
+    text: "And we know that all things work together for good to them that love God, to them who are the called according to his purpose.",
+    reference: "Romans 8:28 (KJV)",
+  },
+  {
+    text: "Come unto me, all ye that labour and are heavy laden, and I will give you rest.",
+    reference: "Matthew 11:28 (KJV)",
+  },
+  {
+    text: "God is our refuge and strength, a very present help in trouble.",
+    reference: "Psalm 46:1 (KJV)",
+  },
+  {
+    text: "This is the day which the LORD hath made; we will rejoice and be glad in it.",
+    reference: "Psalm 118:24 (KJV)",
+  },
+  {
+    text: "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.",
+    reference: "2 Timothy 1:7 (KJV)",
+  },
+  {
+    text: "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.",
+    reference: "Joshua 1:9 (KJV)",
+  },
+  {
+    text: "The LORD is my light and my salvation; whom shall I fear? the LORD is the strength of my life; of whom shall I be afraid?",
+    reference: "Psalm 27:1 (KJV)",
+  },
+  {
+    text: "Casting all your care upon him; for he careth for you.",
+    reference: "1 Peter 5:7 (KJV)",
+  },
+  {
+    text: "Delight thyself also in the LORD; and he shall give thee the desires of thine heart.",
+    reference: "Psalm 37:4 (KJV)",
+  },
+  {
+    text: "It is of the LORD'S mercies that we are not consumed, because his compassions fail not. They are new every morning: great is thy faithfulness.",
+    reference: "Lamentations 3:22-23 (KJV)",
+  },
+  {
+    text: "Thy word is a lamp unto my feet, and a light unto my path.",
+    reference: "Psalm 119:105 (KJV)",
+  },
+  {
+    text: "If any of you lack wisdom, let him ask of God, that giveth to all men liberally, and upbraideth not; and it shall be given him.",
+    reference: "James 1:5 (KJV)",
+  },
+  {
+    text: "But the fruit of the Spirit is love, joy, peace, longsuffering, gentleness, goodness, faith, meekness, temperance.",
+    reference: "Galatians 5:22-23 (KJV)",
+  },
+  {
+    text: "Now faith is the substance of things hoped for, the evidence of things not seen.",
+    reference: "Hebrews 11:1 (KJV)",
+  },
+  {
+    text: "O taste and see that the LORD is good: blessed is the man that trusteth in him.",
+    reference: "Psalm 34:8 (KJV)",
+  },
+];
 
 interface LeftSidebarProps {
   collapsed?: boolean;
@@ -26,89 +98,38 @@ interface LeftSidebarProps {
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed = false }) => {
   const { user } = useAuth();
-  const [stats, setStats] = useState<QuickStat[]>([]);
-  const [dailyVerse] = useState<DailyVerse>({
-    text: "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, to give you hope and a future.",
-    reference: "Jeremiah 29:11",
-  });
-  const [loading, setLoading] = useState(true);
-  const [sectionCollapsed, setSectionCollapsed] = useState<{
-    [k: string]: boolean;
-  }>({
-    stats: false,
-    actions: false,
-    verse: false,
-    events: true,
-    prayer: true,
-    suggestions: false,
-  });
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  // Deterministic daily index; rotates verse each calendar day
+  const MS_PER_DAY = 86_400_000;
+  const dayIndex = Math.floor(Date.now() / MS_PER_DAY);
+  const dailyVerse = useMemo<DailyVerse>(
+    () => DAILY_VERSES[dayIndex % DAILY_VERSES.length],
+    [dayIndex]
+  );
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
 
-  useEffect(() => {
-    fetchDashboardStats();
-    // mock suggestions
-    setSuggestions([
-      { id: 101, username: "grace_note", mutual: 2 },
-      { id: 102, username: "faithwalker" },
-      { id: 103, username: "lightbearer", mutual: 1 },
-    ]);
-  }, []);
-
-  // If user is not loaded yet, return null to prevent rendering
-  if (!user) {
-    return null;
-  }
-
-  const fetchDashboardStats = async () => {
-    if (!user) return;
-    try {
-      const res = await fetch(
-        `${
-          (import.meta as any).env?.VITE_API_URL || "http://localhost:4001/api"
-        }/users/${user.id}/stats`,
-        { credentials: "include" }
-      );
-      if (!res.ok) throw new Error("Failed to load stats");
-      const data: {
-        posts: number;
-        friends: number;
-        prayers: number;
-        blessings: number;
-      } = await res.json();
-      setStats([
-        { label: "My Posts", value: data.posts, icon: "📝" },
-        { label: "Friends", value: data.friends, icon: "👥" },
-        { label: "Prayers", value: data.prayers, icon: "🙏" },
-        { label: "Blessings", value: data.blessings, icon: "✨" },
-      ]);
-    } catch (error) {
-      console.error("Failed to fetch stats:", error);
-      setStats([
-        { label: "My Posts", value: 0, icon: "📝" },
-        { label: "Friends", value: 0, icon: "👥" },
-        { label: "Prayers", value: 0, icon: "🙏" },
-        { label: "Blessings", value: 0, icon: "✨" },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const quickActions = [
-    { label: "Post", icon: "�", action: "post" },
-    { label: "Prayer", icon: "🙏", action: "prayer" },
-    { label: "Testimony", icon: "✨", action: "testimony" },
-    { label: "Study", icon: "�", action: "study" },
+  const navigationItems = [
+    {
+      id: "feed",
+      label: "Feed",
+      icon: "🏠",
+      href: "/dashboard",
+      isActive: true,
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: "👤",
+      href: `/profile/${user?.id}`,
+    },
+    { id: "community", label: "Community", icon: "👥", href: "/community" },
+    { id: "prayer", label: "Prayer Requests", icon: "🙏", href: "/prayers" },
+    { id: "study", label: "Bible Study", icon: "📖", href: "/study" },
+    { id: "events", label: "Events", icon: "📅", href: "/events" },
   ];
 
-  const upcomingEvents = [
-    { title: "Sunday Service", time: "10:00 AM", date: "Tomorrow" },
-    { title: "Bible Study", time: "7:00 PM", date: "Wednesday" },
-  ];
+  // Stats section removed per request; no data fetching needed
 
-  const toggle = (key: string) =>
-    setSectionCollapsed((c) => ({ ...c, [key]: !c[key] }));
+  if (!user) return null;
 
   const copyVerse = async () => {
     try {
@@ -116,217 +137,70 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed = false }) => {
         `"${dailyVerse.text}" — ${dailyVerse.reference}`
       );
       setCopyState("copied");
-      setTimeout(() => setCopyState("idle"), 1800);
+      setTimeout(() => setCopyState("idle"), 1500);
     } catch {
-      /* no-op */
+      /* noop */
     }
   };
 
-  const minimalStatInline = (
-    <div className="ls-inline-stats">
-      {stats.slice(0, 3).map((s) => (
-        <div key={s.label} className="ls-inline-stat">
-          <span className="ls-inline-stat-value">{s.value}</span>
-          <span className="ls-inline-stat-label">{s.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-
   return (
-    <aside
-      className={`left-sidebar minimal ${collapsed ? "is-collapsed" : ""}`}
-    >
-      {/* Header / User */}
-      <div className="ls-user-card">
-        <div className="ls-user-row">
-          <div className="ls-avatar" aria-label="User avatar">
-            {user?.profilePicture ? (
-              <img
-                src={user.profilePicture}
-                alt={user.username}
-                className="ls-avatar-img"
-              />
-            ) : (
-              <span className="ls-avatar-fallback">
-                {user?.username?.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
-          <div className="ls-user-meta">
-            <div className="ls-username">{user?.username}</div>
-            <div className="ls-subtle">Welcome back</div>
-          </div>
-          <Link
-            to={`/profile/${user?.id}`}
-            className="ls-profile-link"
-            aria-label="View profile"
-          >
-            ↗
-          </Link>
+    <aside className={`elegant-sidebar ${collapsed ? "is-collapsed" : ""}`}>
+      <div className="sidebar-profile">
+        <div className="profile-avatar">
+          {user?.profilePicture ? (
+            <img
+              src={user.profilePicture ?? undefined}
+              alt={user?.username ?? "Profile"}
+              className="avatar-img"
+            />
+          ) : (
+            <div className="avatar-placeholder">
+              {user?.username?.charAt(0).toUpperCase() || "U"}
+            </div>
+          )}
         </div>
-        {!loading && stats.length > 0 && minimalStatInline}
-      </div>
-
-      {/* Quick Create */}
-      <div className="ls-block">
-        <div className="ls-block-head">
-          <h4>Quick Create</h4>
-        </div>
-        <div className="ls-actions-inline">
-          {quickActions.map((a) => (
-            <button
-              key={a.action}
-              className="ls-action-chip"
-              onClick={() => console.log("Action:", a.action)}
-            >
-              <span className="ls-action-icon" aria-hidden>
-                {a.icon}
-              </span>
-              <span>{a.label}</span>
-            </button>
-          ))}
+        <div className="profile-info">
+          <h3 className="profile-name">{user?.username || "User"}</h3>
+          <p className="profile-status">Active now</p>
         </div>
       </div>
 
-      {/* Stats (collapsible full) */}
-      <div className="ls-block">
-        <div className="ls-block-head">
-          <h4>My Journey</h4>
-          <button
-            className="ls-toggle"
-            onClick={() => toggle("stats")}
-            aria-label="Toggle stats"
-          >
-            {sectionCollapsed.stats ? "+" : "−"}
-          </button>
-        </div>
-        {!sectionCollapsed.stats && (
-          <div className="ls-grid-2">
-            {loading && <div className="ls-text-light">Loading…</div>}
-            {!loading &&
-              stats.map((s) => (
-                <div key={s.label} className="ls-stat-card">
-                  <div className="ls-stat-icon" aria-hidden>
-                    {s.icon}
-                  </div>
-                  <div className="ls-stat-main">
-                    <div className="ls-stat-value">{s.value}</div>
-                    <div className="ls-stat-label">{s.label}</div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        )}
-      </div>
+      {/* Stats section removed */}
 
-      {/* Daily Verse (always visible, minimal) */}
-      <div className="ls-block verse">
-        <div className="ls-block-head">
-          <h4>Daily Verse</h4>
-          <div className="ls-verse-actions">
-            <button
-              className="ls-icon-btn"
-              onClick={copyVerse}
-              aria-label="Copy verse"
-            >
-              {copyState === "copied" ? "✓" : "⧉"}
-            </button>
-          </div>
-        </div>
-        <blockquote className="ls-verse" aria-label="Daily verse">
-          <p className="ls-verse-text">{dailyVerse.text}</p>
-          <cite className="ls-verse-ref">{dailyVerse.reference}</cite>
-        </blockquote>
-      </div>
-
-      {/* Suggestions */}
-      <div className="ls-block">
-        <div className="ls-block-head">
-          <h4>Suggestions</h4>
-          <button
-            className="ls-toggle"
-            onClick={() => toggle("suggestions")}
-            aria-label="Toggle suggestions"
-          >
-            {sectionCollapsed.suggestions ? "+" : "−"}
-          </button>
-        </div>
-        {!sectionCollapsed.suggestions && (
-          <ul className="ls-suggestions" aria-label="User suggestions">
-            {suggestions.map((s) => (
-              <li key={s.id} className="ls-suggestion-item">
-                <span className="ls-suggestion-avatar">
-                  {s.username.charAt(0).toUpperCase()}
-                </span>
-                <div className="ls-suggestion-meta">
-                  <Link to={`/profile/${s.id}`}>{s.username}</Link>
-                  {s.mutual && (
-                    <span className="ls-mutual">{s.mutual} mutual</span>
-                  )}
-                </div>
-                <button className="ls-follow-btn">Follow</button>
+      <nav className="sidebar-nav">
+        <div className="nav-section">
+          <h4 className="nav-title">Menu</h4>
+          <ul className="nav-list">
+            {navigationItems.map((item) => (
+              <li key={item.id} className="nav-item">
+                <Link
+                  to={item.href}
+                  className={`nav-link ${item.isActive ? "active" : ""}`}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-label">{item.label}</span>
+                </Link>
               </li>
             ))}
-            {!suggestions.length && (
-              <li className="ls-text-light">No suggestions</li>
-            )}
           </ul>
-        )}
-      </div>
+        </div>
+      </nav>
 
-      {/* Events */}
-      <div className="ls-block">
-        <div className="ls-block-head">
-          <h4>Events</h4>
+      <div className="sidebar-verse">
+        <div className="verse-header">
+          <h4 className="verse-title">Daily Verse</h4>
           <button
-            className="ls-toggle"
-            onClick={() => toggle("events")}
-            aria-label="Toggle events"
+            className="verse-copy-btn"
+            onClick={copyVerse}
+            title="Copy verse"
           >
-            {sectionCollapsed.events ? "+" : "−"}
+            {copyState === "copied" ? "✓" : "📋"}
           </button>
         </div>
-        {!sectionCollapsed.events && (
-          <div className="ls-events">
-            {upcomingEvents.map((e) => (
-              <div key={e.title} className="ls-event">
-                <div className="ls-event-main">
-                  <div className="ls-event-title">{e.title}</div>
-                  <div className="ls-event-detail">
-                    {e.time} • {e.date}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {!upcomingEvents.length && (
-              <div className="ls-text-light">No events</div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Prayer Corner */}
-      <div className="ls-block">
-        <div className="ls-block-head">
-          <h4>Prayer</h4>
-          <button
-            className="ls-toggle"
-            onClick={() => toggle("prayer")}
-            aria-label="Toggle prayer section"
-          >
-            {sectionCollapsed.prayer ? "+" : "−"}
-          </button>
-        </div>
-        {!sectionCollapsed.prayer && (
-          <div className="ls-prayer">
-            <p className="ls-prayer-text">
-              Be joyful in hope, patient in affliction, faithful in prayer.
-            </p>
-            <p className="ls-prayer-ref">Romans 12:12</p>
-            <button className="ls-primary-btn">Submit Prayer</button>
-          </div>
-        )}
+        <blockquote className="verse-content">
+          <p className="verse-text">{dailyVerse.text}</p>
+          <cite className="verse-reference">{dailyVerse.reference}</cite>
+        </blockquote>
       </div>
     </aside>
   );
