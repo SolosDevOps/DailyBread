@@ -20,6 +20,13 @@
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* Ensure no overflow issues on mobile */
+@media (max-width: 991px) {
+	.db-wrapper {
+		overflow-x: hidden;
+	}
+}
+
 .db-shell {
 	padding: 24px 0;
 	display: flex;
@@ -33,10 +40,68 @@
 	/* No transition since position stays fixed */
 }
 
+/* ===== MOBILE RESPONSIVE IMPROVEMENTS ===== */
+/* Ensure layout works when sidebar is hidden on mobile */
+@media (max-width: 767px) {
+
+	/* When sidebar is hidden, ensure shell takes full width */
+	.db-shell {
+		margin-left: 0 !important;
+		padding: 16px 8px;
+		gap: 0;
+		flex-direction: column;
+		max-width: 100%;
+		width: 100%;
+	}
+}
+
+/* Tablet and below - Remove sidebar margin */
+@media (max-width: 991px) {
+	.db-shell {
+		margin-left: 0 !important;
+		padding: 16px 8px;
+		gap: 0;
+		flex-direction: column;
+		max-width: 100%;
+	}
+}
+
+/* Mobile specific improvements */
+@media (max-width: 768px) {
+	.db-shell {
+		margin-left: 0 !important;
+		padding: 16px 8px;
+		gap: 0;
+		flex-direction: column;
+		max-width: 100%;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-shell {
+		padding: 12px 4px;
+		margin-left: 0 !important;
+	}
+}
+
 .db-main {
 	width: 100%;
 	max-width: 680px;
 	margin: 0 16px;
+}
+
+/* Mobile optimization for main content */
+@media (max-width: 768px) {
+	.db-main {
+		margin: 0 8px;
+		max-width: 100%;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-main {
+		margin: 0 4px;
+	}
 }
 
 .db-feed-container {
@@ -169,6 +234,26 @@
 	border-radius: var(--fb-radius-lg);
 	overflow: hidden;
 	box-shadow: var(--fb-shadow);
+	margin-bottom: 16px;
+}
+
+/* Mobile optimization for posts */
+@media (max-width: 768px) {
+	.db-post {
+		border-radius: 8px;
+		margin-bottom: 12px;
+		border-left: none;
+		border-right: none;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-post {
+		border-radius: 0;
+		margin-bottom: 8px;
+		box-shadow: none;
+		border-bottom: 1px solid var(--fb-border-light);
+	}
 }
 
 .db-post-header {
@@ -178,6 +263,21 @@
 	padding: 16px 24px;
 }
 
+/* Mobile optimization for post header */
+@media (max-width: 768px) {
+	.db-post-header {
+		padding: 14px 16px;
+		gap: 10px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-post-header {
+		padding: 12px 12px;
+		gap: 8px;
+	}
+}
+
 .db-post-avatar {
 	position: relative;
 	width: 40px;
@@ -185,6 +285,14 @@
 	border-radius: 50%;
 	overflow: hidden;
 	flex-shrink: 0;
+}
+
+/* Mobile optimization for avatars */
+@media (max-width: 480px) {
+	.db-post-avatar {
+		width: 36px;
+		height: 36px;
+	}
 }
 
 .db-avatar-img {
@@ -205,6 +313,13 @@
 	font-size: 16px;
 }
 
+/* Mobile optimization for avatar placeholder */
+@media (max-width: 480px) {
+	.db-avatar-placeholder {
+		font-size: 14px;
+	}
+}
+
 .db-post-meta {
 	flex: 1;
 }
@@ -214,6 +329,13 @@
 	font-weight: 600;
 	color: var(--fb-text);
 	margin-bottom: 2px;
+}
+
+/* Mobile optimization for author text */
+@media (max-width: 480px) {
+	.db-post-author {
+		font-size: 14px;
+	}
 }
 
 /* Clickable username hover effect */
@@ -233,9 +355,29 @@
 	color: var(--fb-text-secondary);
 }
 
+/* Mobile optimization for post time */
+@media (max-width: 480px) {
+	.db-post-time {
+		font-size: 12px;
+	}
+}
+
 .db-post-actions {
 	display: flex;
 	gap: 8px;
+}
+
+/* Mobile optimization for post actions */
+@media (max-width: 768px) {
+	.db-post-actions {
+		gap: 6px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-post-actions {
+		gap: 4px;
+	}
 }
 
 /* Post Dropdown Menu */
@@ -256,6 +398,14 @@
 	color: var(--fb-text-secondary);
 	cursor: pointer;
 	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Mobile optimization for dropdown trigger - larger touch target */
+@media (max-width: 768px) {
+	.db-dropdown-trigger {
+		width: 44px;
+		height: 44px;
+	}
 }
 
 .db-dropdown-trigger:hover {
@@ -280,6 +430,21 @@
 	padding: 8px 0;
 	margin-top: 4px;
 	animation: dropdownFadeIn 0.15s ease-out;
+}
+
+/* Mobile optimization for dropdown menu */
+@media (max-width: 768px) {
+	.db-dropdown-menu {
+		min-width: 180px;
+		right: -8px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-dropdown-menu {
+		min-width: 160px;
+		right: -4px;
+	}
 }
 
 @keyframes dropdownFadeIn {
@@ -309,6 +474,14 @@
 	transition: background-color 0.2s ease;
 }
 
+/* Mobile optimization for dropdown items - larger touch targets */
+@media (max-width: 768px) {
+	.db-dropdown-item {
+		padding: 14px 16px;
+		font-size: 16px;
+	}
+}
+
 .db-dropdown-item:hover {
 	background: var(--fb-hover);
 }
@@ -334,6 +507,19 @@
 	padding: 0 24px 16px;
 }
 
+/* Mobile optimization for post content */
+@media (max-width: 768px) {
+	.db-post-content {
+		padding: 0 16px 14px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-post-content {
+		padding: 0 12px 12px;
+	}
+}
+
 .db-post-title {
 	font-size: 20px;
 	font-weight: 600;
@@ -342,11 +528,41 @@
 	line-height: 1.3;
 }
 
+/* Mobile optimization for post title */
+@media (max-width: 768px) {
+	.db-post-title {
+		font-size: 18px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-post-title {
+		font-size: 16px;
+		line-height: 1.4;
+		margin-bottom: 6px;
+	}
+}
+
 .db-post-body {
 	font-size: 16px;
 	line-height: 1.5;
 	color: var(--fb-text);
 	margin: 0;
+}
+
+/* Mobile optimization for post body */
+@media (max-width: 768px) {
+	.db-post-body {
+		font-size: 15px;
+		line-height: 1.6;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-post-body {
+		font-size: 14px;
+		line-height: 1.6;
+	}
 }
 
 /* Post interactions */
@@ -357,6 +573,25 @@
 	color: var(--fb-text-secondary);
 	font-size: 14px;
 	margin-bottom: 8px;
+}
+
+/* Mobile optimization for post stats */
+@media (max-width: 768px) {
+	.db-post-stats {
+		padding: 0 16px;
+		gap: 14px;
+		font-size: 13px;
+		margin-bottom: 6px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-post-stats {
+		padding: 0 12px;
+		gap: 12px;
+		font-size: 12px;
+		margin-bottom: 4px;
+	}
 }
 
 .db-stat {
@@ -371,6 +606,19 @@
 	display: flex;
 	border-top: 1px solid var(--fb-border-light);
 	padding: 8px 16px;
+}
+
+/* Mobile optimization for post actions bar */
+@media (max-width: 768px) {
+	.db-post-actions-bar {
+		padding: 6px 12px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-post-actions-bar {
+		padding: 4px 8px;
+	}
 }
 
 .db-action-btn {
@@ -389,6 +637,26 @@
 	cursor: pointer;
 	transition: background-color 0.15s ease;
 	position: relative;
+	min-height: 44px;
+}
+
+/* Mobile optimization for action buttons */
+@media (max-width: 768px) {
+	.db-action-btn {
+		font-size: 14px;
+		padding: 8px 6px;
+		gap: 6px;
+		min-height: 44px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-action-btn {
+		font-size: 13px;
+		padding: 10px 4px;
+		gap: 4px;
+		min-height: 44px;
+	}
 }
 
 /* Removed .db-action-btn:active background to eliminate oval click effect */
@@ -469,12 +737,42 @@
 	border-bottom: 1px solid var(--fb-border-light);
 }
 
+/* Mobile optimization for comment form */
+@media (max-width: 768px) {
+	.db-comment-form {
+		padding: 12px 16px;
+		gap: 10px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-comment-form {
+		padding: 10px 12px;
+		gap: 8px;
+	}
+}
+
 .db-comment-avatar {
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
 	overflow: hidden;
 	flex-shrink: 0;
+}
+
+/* Mobile optimization for comment avatar */
+@media (max-width: 768px) {
+	.db-comment-avatar {
+		width: 30px;
+		height: 30px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-comment-avatar {
+		width: 28px;
+		height: 28px;
+	}
 }
 
 .db-comment-input-container {
@@ -492,6 +790,26 @@
 	padding: 8px 16px;
 	font-size: 14px;
 	outline: none;
+	min-height: 40px;
+}
+
+/* Mobile optimization for comment input */
+@media (max-width: 768px) {
+	.db-comment-input {
+		padding: 10px 14px;
+		font-size: 16px;
+		/* Prevent zoom on iOS */
+		min-height: 44px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-comment-input {
+		padding: 12px 12px;
+		font-size: 16px;
+		/* Prevent zoom on iOS */
+		min-height: 44px;
+	}
 }
 
 .db-comment-input:focus {
@@ -508,6 +826,27 @@
 	font-weight: 600;
 	cursor: pointer;
 	transition: background-color 0.2s;
+	min-height: 32px;
+	min-width: 60px;
+}
+
+/* Mobile optimization for comment submit */
+@media (max-width: 768px) {
+	.db-comment-submit {
+		padding: 10px 16px;
+		font-size: 14px;
+		min-height: 44px;
+		min-width: 80px;
+	}
+}
+
+@media (max-width: 480px) {
+	.db-comment-submit {
+		padding: 12px 18px;
+		font-size: 14px;
+		min-height: 44px;
+		min-width: 80px;
+	}
 }
 
 .db-comment-submit:hover:not(:disabled) {
@@ -821,7 +1160,7 @@
 		max-width: 680px;
 		gap: 20px;
 		padding: 16px;
-		margin-left: 0;
+		margin-left: 0 !important;
 		/* Center on tablet and mobile */
 	}
 
@@ -1690,5 +2029,383 @@
 	to {
 		opacity: 1;
 		transform: translateY(0) scale(1);
+	}
+}
+
+/* Share Modal Styles */
+.db-share-modal {
+	max-width: 500px;
+	min-height: auto;
+}
+
+.db-share-preview {
+	background: var(--fb-hover);
+	border-radius: var(--fb-radius);
+	padding: 16px;
+	margin-bottom: 24px;
+	border: 1px solid var(--fb-border-light);
+}
+
+.db-share-preview h4 {
+	margin: 0 0 8px 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--fb-text);
+}
+
+.db-share-preview p {
+	margin: 0;
+	font-size: 14px;
+	color: var(--fb-text-secondary);
+	line-height: 1.4;
+}
+
+.db-share-options {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.db-share-section h5 {
+	margin: 0 0 12px 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--fb-text);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.db-share-option {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 12px 16px;
+	border: 1px solid var(--fb-border);
+	border-radius: var(--fb-radius);
+	background: var(--fb-surface);
+	color: var(--fb-text);
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.db-share-option:hover {
+	background: var(--fb-hover);
+	border-color: var(--fb-blue);
+	transform: translateY(-1px);
+}
+
+.db-share-option:active {
+	transform: translateY(0);
+}
+
+.db-share-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+/* Social Media Specific Styles */
+.db-share-twitter:hover {
+	background: rgba(29, 161, 242, 0.1);
+	border-color: #1da1f2;
+	color: #1da1f2;
+}
+
+.db-share-facebook:hover {
+	background: rgba(24, 119, 242, 0.1);
+	border-color: #1877f2;
+	color: #1877f2;
+}
+
+.db-share-whatsapp:hover {
+	background: rgba(37, 211, 102, 0.1);
+	border-color: #25d366;
+	color: #25d366;
+}
+
+.db-share-telegram:hover {
+	background: rgba(0, 136, 204, 0.1);
+	border-color: #0088cc;
+	color: #0088cc;
+}
+
+.db-share-email:hover {
+	background: rgba(234, 67, 53, 0.1);
+	border-color: #ea4335;
+	color: #ea4335;
+}
+
+.db-modal-close {
+	background: none;
+	border: none;
+	color: var(--fb-text-secondary);
+	font-size: 24px;
+	cursor: pointer;
+	padding: 0;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: all 0.2s ease;
+}
+
+.db-modal-close:hover {
+	background: var(--fb-hover);
+	color: var(--fb-text);
+}
+
+/* Edit Post Modal Styles */
+.db-edit-modal {
+	max-width: 600px;
+	min-height: auto;
+}
+
+.db-edit-modal .db-modal-header {
+	background: linear-gradient(135deg, var(--fb-blue) 0%, #667eea 100%);
+	color: white;
+	border-bottom: none;
+	padding: 24px;
+}
+
+.db-edit-modal .db-modal-header h3 {
+	color: white;
+	font-size: 20px;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.db-edit-modal .db-modal-header h3:before {
+	content: "✏️";
+	font-size: 18px;
+}
+
+.db-edit-modal .db-modal-close {
+	color: rgba(255, 255, 255, 0.8);
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	width: 36px;
+	height: 36px;
+	font-size: 18px;
+}
+
+.db-edit-modal .db-modal-close:hover {
+	background: rgba(255, 255, 255, 0.2);
+	color: white;
+	transform: scale(1.05);
+}
+
+.db-edit-modal .db-modal-body {
+	padding: 32px 24px;
+	background: var(--fb-surface);
+}
+
+.db-edit-form {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.db-edit-field {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.db-edit-field label {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--fb-text);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.db-edit-field label:before {
+	content: "📝";
+	font-size: 16px;
+}
+
+.db-edit-field input,
+.db-edit-field textarea {
+	padding: 16px 20px;
+	border: 2px solid var(--fb-border-light);
+	border-radius: 12px;
+	font-size: 16px;
+	font-family: inherit;
+	background: var(--fb-surface);
+	color: var(--fb-text);
+	transition: all 0.3s ease;
+	resize: vertical;
+	min-height: 120px;
+}
+
+.db-edit-field input:focus,
+.db-edit-field textarea:focus {
+	outline: none;
+	border-color: var(--fb-blue);
+	box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.1);
+	transform: translateY(-2px);
+}
+
+.db-edit-field textarea {
+	line-height: 1.6;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.db-edit-field input::placeholder,
+.db-edit-field textarea::placeholder {
+	color: var(--fb-text-secondary);
+	font-style: italic;
+}
+
+.db-edit-modal .db-modal-footer {
+	background: var(--fb-hover);
+	border-top: 1px solid var(--fb-border-light);
+	padding: 24px;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.db-edit-actions {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+}
+
+.db-btn-primary {
+	background: linear-gradient(135deg, var(--fb-blue) 0%, #667eea 100%);
+	color: white;
+	border: none;
+	padding: 14px 28px;
+	border-radius: 12px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+.db-btn-primary:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 20px rgba(24, 119, 242, 0.4);
+}
+
+.db-btn-primary:active {
+	transform: translateY(0);
+}
+
+.db-btn-primary:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+.db-edit-modal .db-btn-secondary {
+	background: transparent;
+	color: var(--fb-text-secondary);
+	border: 2px solid var(--fb-border);
+	padding: 12px 24px;
+	border-radius: 12px;
+	font-size: 16px;
+	font-weight: 600;
+	transition: all 0.3s ease;
+}
+
+.db-edit-modal .db-btn-secondary:hover {
+	background: var(--fb-hover);
+	color: var(--fb-text);
+	border-color: var(--fb-blue);
+	transform: translateY(-1px);
+}
+
+.db-edit-char-count {
+	font-size: 12px;
+	color: var(--fb-text-secondary);
+	text-align: right;
+	margin-top: 4px;
+}
+
+.db-edit-char-count.warning {
+	color: #f39c12;
+}
+
+.db-edit-char-count.error {
+	color: #e74c3c;
+}
+
+/* Enhanced animations for edit modal */
+.db-edit-modal {
+	animation: editModalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes editModalSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-30px) scale(0.9);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+	.db-share-modal {
+		max-width: 90vw;
+		margin: 20px;
+	}
+
+	.db-share-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.db-share-option {
+		padding: 16px;
+		font-size: 16px;
+	}
+
+	.db-edit-modal {
+		max-width: 95vw;
+		margin: 10px;
+		max-height: 95vh;
+	}
+
+	.db-edit-modal .db-modal-header,
+	.db-edit-modal .db-modal-body,
+	.db-edit-modal .db-modal-footer {
+		padding: 20px 16px;
+	}
+
+	.db-edit-field input,
+	.db-edit-field textarea {
+		padding: 14px 16px;
+		font-size: 16px;
+	}
+
+	.db-edit-actions {
+		flex-direction: column;
+		width: 100%;
+		gap: 12px;
+	}
+
+	.db-btn-primary,
+	.db-edit-modal .db-btn-secondary {
+		width: 100%;
+		justify-content: center;
+		padding: 16px;
 	}
 }

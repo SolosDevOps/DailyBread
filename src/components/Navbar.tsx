@@ -210,7 +210,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = () => {
   const { user, logout } = useAuth();
-  const { sidebarCollapsed, toggleSidebar } = useSidebar();
+  const { sidebarCollapsed, toggleSidebar, setActiveSection } = useSidebar();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UserResult[]>([]);
@@ -268,11 +268,11 @@ const Navbar: React.FC<NavbarProps> = () => {
     setRecentSearches((prev) => {
       const filtered = prev.filter((u) => u.id !== searchUser.id);
       const updated = [searchUser, ...filtered].slice(0, 5); // Keep only 5 recent searches
-      
+
       // Save to user-specific localStorage key
       const userSpecificKey = `recentSearches_${user.id}`;
       localStorage.setItem(userSpecificKey, JSON.stringify(updated));
-      
+
       return updated;
     });
 
@@ -418,7 +418,11 @@ const Navbar: React.FC<NavbarProps> = () => {
 
         {/* Desktop Navigation Links */}
         <div className="navbar-links">
-          <Link to="/dashboard" className="navbar-link">
+          <Link
+            to="/dashboard"
+            className="navbar-link"
+            onClick={() => setActiveSection("feed")}
+          >
             Home
           </Link>
           <Link to={`/profile/${user?.id}`} className="navbar-link">
@@ -435,21 +439,37 @@ const Navbar: React.FC<NavbarProps> = () => {
           <button
             type="button"
             className="navbar-mobile-menu-btn"
-            aria-label="Open navigation menu"
-            onClick={() => setMobileMenuOpen(true)}
+            aria-label={
+              mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"
+            }
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
+            {mobileMenuOpen ? (
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            )}
           </button>
         </div>
       </div>
@@ -511,7 +531,10 @@ const Navbar: React.FC<NavbarProps> = () => {
                 <Link
                   to="/dashboard"
                   className="navbar-mobile-link"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setActiveSection("feed");
+                  }}
                 >
                   <svg
                     width="20"
@@ -544,6 +567,30 @@ const Navbar: React.FC<NavbarProps> = () => {
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                   <span>Profile</span>
+                </Link>
+
+                <Link
+                  to="/dashboard"
+                  className="navbar-mobile-link"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setActiveSection("study");
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    <circle cx="10" cy="8" r="2"></circle>
+                    <path d="M10 12v6"></path>
+                  </svg>
+                  <span>Bible Study</span>
                 </Link>
 
                 <button

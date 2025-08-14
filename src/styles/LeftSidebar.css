@@ -1267,3 +1267,10 @@
 		border-radius: 12px;
 	}
 }
+
+/* Hide elegant sidebar on tablet and below; Navbar provides mobile menu */
+@media (max-width: 991px) {
+	.elegant-sidebar {
+		display: none !important;
+	}
+}

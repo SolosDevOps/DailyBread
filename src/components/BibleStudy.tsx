@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "../lib/api";
 import { useToast } from "../context/ToastContext";
 import "../styles/BibleStudy.css";
@@ -226,6 +226,7 @@ const BibleStudy: React.FC = () => {
   // UI state
   const [showBookSelector, setShowBookSelector] = useState(false);
   const [showChapterSelector, setShowChapterSelector] = useState(false);
+  const [activeTestament, setActiveTestament] = useState<"old" | "new">("old");
   const [noteText, setNoteText] = useState("");
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteVerse, setNoteVerse] = useState<{
@@ -234,10 +235,28 @@ const BibleStudy: React.FC = () => {
     verse: number;
   } | null>(null);
 
+  // Book search state for fullscreen modal
+  const [bookSearchQuery, setBookSearchQuery] = useState("");
+  const [showFullscreenBookSearch, setShowFullscreenBookSearch] =
+    useState(false);
+
+  // Mobile tabs menu state
+  const [showMobileTabsMenu, setShowMobileTabsMenu] = useState(false);
+
   // Scroll management for navigation UX
   const [showFloatingNav, setShowFloatingNav] = useState(false);
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const versesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Dragging functionality for floating navigation
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragPosition, setDragPosition] = useState({ x: 20, y: 20 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const floatingNavRef = useRef<HTMLDivElement>(null);
+
+  // Refs for click-outside functionality
+  const bookSelectorRef = useRef<HTMLDivElement>(null);
+  const chapterSelectorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadChapter(currentBook, currentChapter, currentVersion);
@@ -280,6 +299,178 @@ const BibleStudy: React.FC = () => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Click outside effect to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      // Close book selector if click is outside
+      if (
+        showBookSelector &&
+        bookSelectorRef.current &&
+        !bookSelectorRef.current.contains(target)
+      ) {
+        setShowBookSelector(false);
+      }
+
+      // Close chapter selector if click is outside
+      if (
+        showChapterSelector &&
+        chapterSelectorRef.current &&
+        !chapterSelectorRef.current.contains(target)
+      ) {
+        setShowChapterSelector(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Close dropdowns on Escape key
+      if (event.key === "Escape") {
+        setShowBookSelector(false);
+        setShowChapterSelector(false);
+      }
+    };
+
+    if (showBookSelector || showChapterSelector) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showBookSelector, showChapterSelector]);
+
+  // Drag handlers for floating navigation
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!floatingNavRef.current) return;
+
+    setIsDragging(true);
+    const rect = floatingNavRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+
+    // Prevent text selection while dragging
+    e.preventDefault();
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!floatingNavRef.current) return;
+
+    const touch = e.touches[0];
+    setIsDragging(true);
+    const rect = floatingNavRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top,
+    });
+
+    // Prevent scrolling while dragging
+    e.preventDefault();
+  };
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+
+      // Keep within viewport bounds
+      const maxX = window.innerWidth - 300; // Approximate width of floating nav
+      const maxY = window.innerHeight - 200; // Approximate height of floating nav
+
+      setDragPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
+    },
+    [isDragging, dragOffset]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (!isDragging) return;
+
+      const touch = e.touches[0];
+      const newX = touch.clientX - dragOffset.x;
+      const newY = touch.clientY - dragOffset.y;
+
+      // Keep within viewport bounds
+      const maxX = window.innerWidth - 300;
+      const maxY = window.innerHeight - 200;
+
+      setDragPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
+    },
+    [isDragging, dragOffset]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+
+    // Save position to localStorage for persistence
+    localStorage.setItem("floatingNavPosition", JSON.stringify(dragPosition));
+  }, [dragPosition]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+
+    // Save position to localStorage for persistence
+    localStorage.setItem("floatingNavPosition", JSON.stringify(dragPosition));
+  }, [dragPosition]);
+
+  const resetPosition = () => {
+    const defaultPosition = { x: 20, y: 20 };
+    setDragPosition(defaultPosition);
+    localStorage.setItem(
+      "floatingNavPosition",
+      JSON.stringify(defaultPosition)
+    );
+  };
+
+  // Add/remove mouse and touch event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.addEventListener("touchmove", handleTouchMove, {
+        passive: false,
+      });
+      document.addEventListener("touchend", handleTouchEnd);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        document.removeEventListener("touchmove", handleTouchMove);
+        document.removeEventListener("touchend", handleTouchEnd);
+      };
+    }
+  }, [
+    isDragging,
+    handleMouseMove,
+    handleMouseUp,
+    handleTouchMove,
+    handleTouchEnd,
+  ]);
+
+  // Load saved position on component mount
+  useEffect(() => {
+    const savedPosition = localStorage.getItem("floatingNavPosition");
+    if (savedPosition) {
+      try {
+        const position = JSON.parse(savedPosition);
+        setDragPosition(position);
+      } catch (err) {
+        console.error("Failed to parse saved floating nav position:", err);
+      }
+    }
   }, []);
 
   const loadChapter = async (
@@ -465,6 +656,38 @@ const BibleStudy: React.FC = () => {
 
   const getCurrentBook = () =>
     BIBLE_BOOKS.find((book) => book.name === currentBook);
+
+  // Helper to detect mobile screens
+  const isMobile = () => window.innerWidth <= 768;
+
+  // Filter books based on search query
+  const getFilteredBooks = () => {
+    if (!bookSearchQuery.trim()) return BIBLE_BOOKS;
+    return BIBLE_BOOKS.filter(
+      (book) =>
+        book.name.toLowerCase().includes(bookSearchQuery.toLowerCase()) ||
+        book.abbreviation.toLowerCase().includes(bookSearchQuery.toLowerCase())
+    );
+  };
+
+  // Handle book selection with mobile detection
+  const handleBookClick = () => {
+    if (isMobile()) {
+      setShowFullscreenBookSearch(true);
+      setBookSearchQuery("");
+    } else {
+      setShowBookSelector(!showBookSelector);
+      setShowChapterSelector(false);
+    }
+  };
+
+  // Handle book selection from search modal
+  const selectBookFromSearch = (bookName: string) => {
+    setCurrentBook(bookName);
+    setCurrentChapter(1);
+    setShowFullscreenBookSearch(false);
+    setBookSearchQuery("");
+  };
   const getVerseHighlight = (verse: BibleVerse) =>
     highlights.find(
       (h) =>
@@ -480,6 +703,49 @@ const BibleStudy: React.FC = () => {
         b.chapter === verse.chapter &&
         b.verse === verse.verse
     );
+
+  const navigateToVerse = async (
+    book: string,
+    chapter: number,
+    verseNumber: number
+  ) => {
+    // First navigate to the chapter
+    setCurrentBook(book);
+    setCurrentChapter(chapter);
+    setActiveTab("read");
+
+    // Wait for the chapter to load and DOM to update
+    setTimeout(() => {
+      // Find the specific verse element
+      const verseElement = document.querySelector(
+        `[data-verse="${verseNumber}"]`
+      );
+      if (verseElement) {
+        // Scroll to the verse
+        verseElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        // Highlight the verse temporarily
+        const verseDiv = verseElement as HTMLElement;
+        verseDiv.style.background = "rgba(37, 99, 235, 0.2)";
+        verseDiv.style.boxShadow = "0 0 0 2px rgba(37, 99, 235, 0.4)";
+        verseDiv.style.borderRadius = "4px";
+        verseDiv.style.padding = "4px 8px";
+        verseDiv.style.margin = "-4px -8px";
+
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+          verseDiv.style.background = "";
+          verseDiv.style.boxShadow = "";
+          verseDiv.style.borderRadius = "";
+          verseDiv.style.padding = "";
+          verseDiv.style.margin = "";
+        }, 3000);
+      }
+    }, 500); // Wait for chapter content to load
+  };
 
   const removeBookmarkById = async (id: number) => {
     try {
@@ -579,7 +845,31 @@ const BibleStudy: React.FC = () => {
     <div className="bible-study-container">
       {/* Floating Navigation */}
       {showFloatingNav && activeTab === "read" && (
-        <div className="floating-navigation">
+        <div
+          ref={floatingNavRef}
+          className={`floating-navigation ${isDragging ? "dragging" : ""}`}
+          style={{
+            position: "fixed",
+            left: `${dragPosition.x}px`,
+            top: `${dragPosition.y}px`,
+            cursor: isDragging ? "grabbing" : "grab",
+            zIndex: 1001,
+          }}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          onDoubleClick={resetPosition}
+          title="Drag to move, double-click to reset position"
+        >
+          <div className="drag-handle" title="Drag to reposition">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="9" cy="5" r="1" />
+              <circle cx="15" cy="5" r="1" />
+              <circle cx="9" cy="12" r="1" />
+              <circle cx="15" cy="12" r="1" />
+              <circle cx="9" cy="19" r="1" />
+              <circle cx="15" cy="19" r="1" />
+            </svg>
+          </div>
           <ChapterNavigation className="floating-nav-content" compact={true} />
         </div>
       )}
@@ -623,134 +913,274 @@ const BibleStudy: React.FC = () => {
             💬 Discussion
           </button>
         </div>
+
+        {/* Mobile 3-dot menu */}
+        <div className="mobile-tabs-menu">
+          <button
+            className="mobile-menu-trigger"
+            onClick={() => setShowMobileTabsMenu(!showMobileTabsMenu)}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          {showMobileTabsMenu && (
+            <div className="mobile-menu-dropdown">
+              <button
+                className={`mobile-tab-item ${
+                  activeTab === "read" ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("read");
+                  setShowMobileTabsMenu(false);
+                }}
+              >
+                📚 Read
+              </button>
+              <button
+                className={`mobile-tab-item ${
+                  activeTab === "plans" ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("plans");
+                  setShowMobileTabsMenu(false);
+                }}
+              >
+                📅 Plans
+              </button>
+              <button
+                className={`mobile-tab-item ${
+                  activeTab === "bookmarks" ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("bookmarks");
+                  setShowMobileTabsMenu(false);
+                }}
+              >
+                🔖 Bookmarks
+              </button>
+              <button
+                className={`mobile-tab-item ${
+                  activeTab === "search" ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("search");
+                  setShowMobileTabsMenu(false);
+                }}
+              >
+                🔍 Search
+              </button>
+              <button
+                className={`mobile-tab-item ${
+                  activeTab === "discussion" ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveTab("discussion");
+                  setShowMobileTabsMenu(false);
+                }}
+              >
+                💬 Discussion
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Reading Tab */}
       {activeTab === "read" && (
         <div className="bible-content">
-          {/* Reader Controls */}
-          <div className="reader-controls">
-            <div className="navigation-controls">
-              <button
-                className="nav-btn"
-                onClick={() => navigateChapter("prev")}
-                disabled={currentBook === "Genesis" && currentChapter === 1}
-              >
-                ← Previous
-              </button>
-
-              <div className="chapter-selector">
-                <div className="book-chapter-display">
+          {/* Enhanced Navigation Controls */}
+          <div className="enhanced-navigation">
+            {/* Primary Navigation Bar */}
+            <div className="nav-primary">
+              <div className="nav-location">
+                <div className="current-reference">
+                  <span className="book-name">{currentBook}</span>
+                  <span className="chapter-number">{currentChapter}</span>
+                </div>
+                <div className="nav-arrows">
                   <button
-                    className="book-btn"
-                    onClick={() => setShowBookSelector(!showBookSelector)}
+                    className="nav-arrow prev"
+                    onClick={() => navigateChapter("prev")}
+                    disabled={currentBook === "Genesis" && currentChapter === 1}
+                    title="Previous Chapter"
                   >
-                    {currentBook} ▼
+                    ←
                   </button>
                   <button
-                    className="chapter-btn"
-                    onClick={() => setShowChapterSelector(!showChapterSelector)}
+                    className="nav-arrow next"
+                    onClick={() => navigateChapter("next")}
+                    disabled={
+                      currentBook === "Revelation" && currentChapter === 22
+                    }
+                    title="Next Chapter"
                   >
-                    Chapter {currentChapter} ▼
+                    →
+                  </button>
+                </div>
+              </div>
+
+              <div className="nav-selectors">
+                <button
+                  className="nav-selector book-selector"
+                  onClick={handleBookClick}
+                >
+                  <span>📖</span>
+                  <span>Books</span>
+                </button>
+                <button
+                  className="nav-selector chapter-selector"
+                  onClick={() => {
+                    setShowChapterSelector(!showChapterSelector);
+                    setShowBookSelector(false);
+                  }}
+                >
+                  <span>📄</span>
+                  <span>Chapters</span>
+                </button>
+                <select
+                  className="version-select"
+                  value={currentVersion}
+                  onChange={(e) => setCurrentVersion(e.target.value)}
+                >
+                  {BIBLE_VERSIONS.map((version) => (
+                    <option key={version.id} value={version.id}>
+                      {version.abbreviation}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Quick Chapter Navigation */}
+            <div className="chapter-quick-nav">
+              <div className="chapter-range">
+                {Array.from(
+                  { length: Math.min(getCurrentBook()?.chapters || 1, 10) },
+                  (_, i) => {
+                    const chapterNum = Math.max(1, currentChapter - 5) + i;
+                    const maxChapter = getCurrentBook()?.chapters || 1;
+                    if (chapterNum > maxChapter) return null;
+
+                    return (
+                      <button
+                        key={chapterNum}
+                        className={`quick-chapter ${
+                          currentChapter === chapterNum ? "active" : ""
+                        }`}
+                        onClick={() => setCurrentChapter(chapterNum)}
+                      >
+                        {chapterNum}
+                      </button>
+                    );
+                  }
+                ).filter(Boolean)}
+                {(getCurrentBook()?.chapters || 1) > 10 && (
+                  <button
+                    className="more-chapters"
+                    onClick={() => setShowChapterSelector(true)}
+                  >
+                    ...
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Enhanced Book Selector */}
+            {showBookSelector && (
+              <div className="enhanced-book-selector" ref={bookSelectorRef}>
+                <div className="book-selector-header">
+                  <h3>Select a Book</h3>
+                  <button
+                    className="close-selector"
+                    onClick={() => setShowBookSelector(false)}
+                  >
+                    ×
                   </button>
                 </div>
 
-                {showBookSelector && (
-                  <div className="book-selector-dropdown">
-                    <div className="testament-section">
-                      <h4>Old Testament</h4>
-                      <div className="books-grid">
-                        {BIBLE_BOOKS.filter(
-                          (book) => book.testament === "old"
-                        ).map((book) => (
-                          <button
-                            key={book.name}
-                            className={`book-option ${
-                              currentBook === book.name ? "active" : ""
-                            }`}
-                            onClick={() => {
-                              setCurrentBook(book.name);
-                              setCurrentChapter(1);
-                              setShowBookSelector(false);
-                            }}
-                          >
-                            {book.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="testament-section">
-                      <h4>New Testament</h4>
-                      <div className="books-grid">
-                        {BIBLE_BOOKS.filter(
-                          (book) => book.testament === "new"
-                        ).map((book) => (
-                          <button
-                            key={book.name}
-                            className={`book-option ${
-                              currentBook === book.name ? "active" : ""
-                            }`}
-                            onClick={() => {
-                              setCurrentBook(book.name);
-                              setCurrentChapter(1);
-                              setShowBookSelector(false);
-                            }}
-                          >
-                            {book.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div className="testament-tabs">
+                  <button
+                    className={`testament-tab ${
+                      activeTestament === "old" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveTestament("old")}
+                  >
+                    Old Testament (39)
+                  </button>
+                  <button
+                    className={`testament-tab ${
+                      activeTestament === "new" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveTestament("new")}
+                  >
+                    New Testament (27)
+                  </button>
+                </div>
 
-                {showChapterSelector && (
-                  <div className="chapter-selector-dropdown">
-                    <div className="chapters-grid">
-                      {Array.from(
-                        { length: getCurrentBook()?.chapters || 1 },
-                        (_, i) => (
-                          <button
-                            key={i + 1}
-                            className={`chapter-option ${
-                              currentChapter === i + 1 ? "active" : ""
-                            }`}
-                            onClick={() => {
-                              setCurrentChapter(i + 1);
-                              setShowChapterSelector(false);
-                            }}
-                          >
-                            {i + 1}
-                          </button>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
+                <div className="books-list">
+                  {BIBLE_BOOKS.filter(
+                    (book) => book.testament === activeTestament
+                  ).map((book) => (
+                    <button
+                      key={book.name}
+                      className={`book-item ${
+                        currentBook === book.name ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        setCurrentBook(book.name);
+                        setCurrentChapter(1);
+                        setShowBookSelector(false);
+                      }}
+                    >
+                      <span className="book-name">{book.name}</span>
+                      <span className="book-info">
+                        {book.chapters} chapters
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
+            )}
 
-              <button
-                className="nav-btn"
-                onClick={() => navigateChapter("next")}
-                disabled={currentBook === "Revelation" && currentChapter === 22}
+            {/* Enhanced Chapter Selector */}
+            {showChapterSelector && (
+              <div
+                className="enhanced-chapter-selector"
+                ref={chapterSelectorRef}
               >
-                Next →
-              </button>
-            </div>
+                <div className="chapter-selector-header">
+                  <h3>{currentBook} - Select Chapter</h3>
+                  <button
+                    className="close-selector"
+                    onClick={() => setShowChapterSelector(false)}
+                  >
+                    ×
+                  </button>
+                </div>
 
-            <div className="version-selector">
-              <select
-                value={currentVersion}
-                onChange={(e) => setCurrentVersion(e.target.value)}
-                className="version-select"
-              >
-                {BIBLE_VERSIONS.map((version) => (
-                  <option key={version.id} value={version.id}>
-                    {version.abbreviation}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <div className="chapters-grid">
+                  {Array.from(
+                    { length: getCurrentBook()?.chapters || 1 },
+                    (_, i) => (
+                      <button
+                        key={i + 1}
+                        className={`chapter-item ${
+                          currentChapter === i + 1 ? "active" : ""
+                        }`}
+                        onClick={() => {
+                          setCurrentChapter(i + 1);
+                          setShowChapterSelector(false);
+                        }}
+                      >
+                        {i + 1}
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Chapter Content */}
@@ -786,6 +1216,7 @@ const BibleStudy: React.FC = () => {
                   return (
                     <div
                       key={verse.verse}
+                      data-verse={verse.verse}
                       className={`verse ${highlight ? "highlighted" : ""} ${
                         selectedVerses.includes(verse.verse) ? "selected" : ""
                       }`}
@@ -986,9 +1417,11 @@ const BibleStudy: React.FC = () => {
                       <button
                         className="bookmark-go-btn"
                         onClick={() => {
-                          setCurrentBook(bookmark.book);
-                          setCurrentChapter(bookmark.chapter);
-                          setActiveTab("read");
+                          navigateToVerse(
+                            bookmark.book,
+                            bookmark.chapter,
+                            bookmark.verse
+                          );
                         }}
                       >
                         Go to verse
@@ -1200,6 +1633,175 @@ const BibleStudy: React.FC = () => {
                 Save Note
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Book Search Modal */}
+      {showFullscreenBookSearch && (
+        <div className="fullscreen-book-search">
+          <div className="book-search-header">
+            <div className="search-container">
+              <div className="search-input-wrapper">
+                <svg
+                  className="search-icon"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search for books (e.g., Genesis, Romans, Psalms...)"
+                  value={bookSearchQuery}
+                  onChange={(e) => setBookSearchQuery(e.target.value)}
+                  className="book-search-input"
+                  autoFocus
+                />
+                {bookSearchQuery && (
+                  <button
+                    className="clear-search-btn"
+                    onClick={() => setBookSearchQuery("")}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+            <button
+              className="close-book-search-btn"
+              onClick={() => {
+                setShowFullscreenBookSearch(false);
+                setBookSearchQuery("");
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div className="book-search-content">
+            {!bookSearchQuery.trim() && (
+              <div className="search-suggestions">
+                <div className="suggestion-section">
+                  <h3>📖 Old Testament</h3>
+                  <div className="suggestion-books">
+                    {BIBLE_BOOKS.filter((book) => book.testament === "old")
+                      .slice(0, 8)
+                      .map((book) => (
+                        <button
+                          key={book.name}
+                          className="suggestion-book"
+                          onClick={() => selectBookFromSearch(book.name)}
+                        >
+                          <span className="book-name">{book.name}</span>
+                          <span className="book-chapters">
+                            {book.chapters} chapters
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+
+                <div className="suggestion-section">
+                  <h3>✝️ New Testament</h3>
+                  <div className="suggestion-books">
+                    {BIBLE_BOOKS.filter((book) => book.testament === "new")
+                      .slice(0, 8)
+                      .map((book) => (
+                        <button
+                          key={book.name}
+                          className="suggestion-book"
+                          onClick={() => selectBookFromSearch(book.name)}
+                        >
+                          <span className="book-name">{book.name}</span>
+                          <span className="book-chapters">
+                            {book.chapters} chapters
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {bookSearchQuery.trim() && (
+              <div className="search-results">
+                <div className="results-header">
+                  <h3>📚 Search Results</h3>
+                  <span className="results-count">
+                    {getFilteredBooks().length} book
+                    {getFilteredBooks().length !== 1 ? "s" : ""} found
+                  </span>
+                </div>
+
+                <div className="results-list">
+                  {getFilteredBooks().length > 0 ? (
+                    getFilteredBooks().map((book) => (
+                      <button
+                        key={book.name}
+                        className="result-book"
+                        onClick={() => selectBookFromSearch(book.name)}
+                      >
+                        <div className="book-info">
+                          <span className="book-name">{book.name}</span>
+                          <span className="book-details">
+                            {book.abbreviation} • {book.chapters} chapters •{" "}
+                            {book.testament === "old"
+                              ? "Old Testament"
+                              : "New Testament"}
+                          </span>
+                        </div>
+                        <div className="book-arrow">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                          </svg>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="no-results">
+                      <div className="no-results-icon">📖</div>
+                      <h4>No books found</h4>
+                      <p>
+                        Try searching for a different book name or abbreviation.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

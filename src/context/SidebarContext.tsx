@@ -21,7 +21,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
   // Auto-detect active section based on current route
   useEffect(() => {
     const path = location.pathname;
-    
+
     if (path === "/dashboard") {
       setActiveSection("feed");
     } else if (path.startsWith("/profile")) {

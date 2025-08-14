@@ -6,7 +6,9 @@ import { useSidebar } from "../../context/SidebarContext";
 import { useFeed } from "../../context/FeedContext";
 import Navbar from "../../components/Navbar";
 import LeftSidebar from "../../components/LeftSidebar";
+import PostComponent from "../../components/PostComponent";
 import "../../styles/ModernProfile.css";
+import "../../styles/Dashboard.css";
 import { useToast } from "../../context/ToastContext";
 
 interface ProfileUser {
@@ -29,7 +31,28 @@ interface Post {
   title: string;
   content: string;
   createdAt: string;
-  author?: { id: number; username: string };
+  author: { id: number; username: string; profilePicture?: string };
+  authorId?: number;
+  likes?: Like[];
+  comments?: Comment[];
+  _count?: {
+    likes: number;
+    comments: number;
+  };
+}
+
+interface Like {
+  id: number;
+  userId: number;
+  user: { id: number; username: string; profilePicture?: string };
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  createdAt: string;
+  userId: number;
+  user?: { id: number; username: string; profilePicture?: string };
 }
 
 interface ProfileFormData {
@@ -49,11 +72,6 @@ const ProfilePage: React.FC = () => {
   const { showToast } = useToast();
   const [profile, setProfile] = useState<ProfileUser | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [editingPostId, setEditingPostId] = useState<number | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
-  const [postActionLoading, setPostActionLoading] = useState(false);
-  const [postActionError, setPostActionError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [followLoading, setFollowLoading] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
@@ -84,56 +102,27 @@ const ProfilePage: React.FC = () => {
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Post edit helpers
-  function cancelEditPost() {
-    setEditingPostId(null);
-    setEditTitle("");
-    setEditContent("");
-    setPostActionError(null);
-    setPostActionLoading(false);
-  }
+  // PostComponent-compatible handlers
+  const handlePostEdit = () => {
+    // No longer needed since we use inline editing
+    // This can be left empty or removed
+  };
 
-  async function handleSavePost(id: number) {
-    if (!editTitle.trim() || !editContent.trim()) {
-      setPostActionError("Title & content required");
-      return;
-    }
-    setPostActionLoading(true);
-    setPostActionError(null);
-    try {
-      const updated = await api.put<Post>(`/posts/${id}`, {
-        title: editTitle.trim(),
-        content: editContent.trim(),
-      });
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? { ...p, title: updated.title, content: updated.content }
-            : p
-        )
-      );
-      cancelEditPost();
-    } catch (e: any) {
-      setPostActionError(e.message || "Update failed");
-    } finally {
-      setPostActionLoading(false);
-    }
-  }
-
-  async function handleDeletePost(id: number) {
+  const handlePostDelete = async (postId: number) => {
     if (!window.confirm("Delete this post?")) return;
-    setPostActionLoading(true);
-    setPostActionError(null);
     try {
-      await api.del(`/posts/${id}`);
-      setPosts((prev) => prev.filter((p) => p.id !== id));
-      if (editingPostId === id) cancelEditPost();
+      await api.del(`/posts/${postId}`);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      showToast({ message: "Post deleted successfully!", type: "success" });
     } catch (e: any) {
-      setPostActionError(e.message || "Delete failed");
-    } finally {
-      setPostActionLoading(false);
+      showToast({ message: e.message || "Delete failed", type: "error" });
     }
-  }
+  };
+
+  const handlePostUpdate = () => {
+    // Refresh posts after like/comment changes
+    loadProfile();
+  };
 
   useEffect(() => {
     if (id) {
@@ -972,106 +961,18 @@ const ProfilePage: React.FC = () => {
             {activeTab === "posts" && (
               <div className="modern-posts-section">
                 {posts.length > 0 ? (
-                  <div className="modern-posts-grid">
-                    {posts.map((post) => {
-                      const isOwner =
-                        isOwnProfile || post.author?.id === currentUser?.id;
-                      const isEditing = editingPostId === post.id;
-                      return (
-                        <div
-                          key={post.id}
-                          className={`modern-post-card ${
-                            isEditing ? "editing" : ""
-                          }`}
-                        >
-                          <div className="modern-post-header">
-                            <span className="modern-post-date">
-                              {new Date(post.createdAt).toLocaleDateString()}
-                            </span>
-                            {isOwner && !isEditing && (
-                              <div className="modern-post-actions">
-                                <button
-                                  type="button"
-                                  className="modern-post-action-btn"
-                                  title="Edit post"
-                                  onClick={() => {
-                                    setEditingPostId(post.id);
-                                    setEditTitle(post.title);
-                                    setEditContent(post.content);
-                                    setPostActionError(null);
-                                  }}
-                                >
-                                  ✏️
-                                </button>
-                                <button
-                                  type="button"
-                                  className="modern-post-action-btn modern-post-delete"
-                                  title="Delete post"
-                                  disabled={postActionLoading}
-                                  onClick={() => handleDeletePost(post.id)}
-                                >
-                                  🗑️
-                                </button>
-                              </div>
-                            )}
-                          </div>
-
-                          {!isEditing ? (
-                            <>
-                              <h3 className="modern-post-title">
-                                {post.title}
-                              </h3>
-                              <p className="modern-post-content">
-                                {post.content.length > 200
-                                  ? `${post.content.substring(0, 200)}...`
-                                  : post.content}
-                              </p>
-                            </>
-                          ) : (
-                            <div className="modern-post-edit-form">
-                              <input
-                                value={editTitle}
-                                onChange={(e) => setEditTitle(e.target.value)}
-                                className="modern-edit-title"
-                                placeholder="Post title"
-                                disabled={postActionLoading}
-                              />
-                              <textarea
-                                value={editContent}
-                                onChange={(e) => setEditContent(e.target.value)}
-                                rows={4}
-                                className="modern-edit-content"
-                                placeholder="Post content"
-                                disabled={postActionLoading}
-                              />
-                              {postActionError && (
-                                <div className="modern-error-message">
-                                  {postActionError}
-                                </div>
-                              )}
-                              <div className="modern-edit-actions">
-                                <button
-                                  type="button"
-                                  className="modern-btn modern-btn-ghost"
-                                  onClick={() => cancelEditPost()}
-                                  disabled={postActionLoading}
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  type="button"
-                                  className="modern-btn modern-btn-primary"
-                                  onClick={() => handleSavePost(post.id)}
-                                  disabled={postActionLoading}
-                                >
-                                  {postActionLoading ? "Saving..." : "Save"}
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div className="db-posts-container">
+                    {posts.map((post) => (
+                      <PostComponent
+                        key={post.id}
+                        post={post}
+                        onEdit={handlePostEdit}
+                        onDelete={handlePostDelete}
+                        onUpdate={handlePostUpdate}
+                        isOwnProfile={isOwnProfile}
+                        enableInlineEdit={true}
+                      />
+                    ))}
                   </div>
                 ) : (
                   <div className="modern-empty-state">

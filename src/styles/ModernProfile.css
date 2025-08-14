@@ -944,3 +944,26 @@
 	border-color: #cbd5e0;
 	color: #4a5568;
 }
+
+/* Posts Container for PostComponent Integration */
+.modern-posts-section .db-posts-container {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.modern-posts-section .db-post {
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	border: 1px solid #e6e6e6;
+}
+
+/* Ensure proper spacing and layout within the modern posts section */
+.modern-posts-section {
+	padding: 0;
+}
+
+.modern-posts-section .db-posts-container .db-post:last-child {
+	margin-bottom: 0;
+}
