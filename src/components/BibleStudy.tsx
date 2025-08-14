@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 import { useToast } from "../context/ToastContext";
 import "../styles/BibleStudy.css";
@@ -75,7 +74,12 @@ const BIBLE_BOOKS: BibleBook[] = [
   { name: "Psalms", abbreviation: "Psa", chapters: 150, testament: "old" },
   { name: "Proverbs", abbreviation: "Pro", chapters: 31, testament: "old" },
   { name: "Ecclesiastes", abbreviation: "Ecc", chapters: 12, testament: "old" },
-  { name: "Song of Solomon", abbreviation: "SoS", chapters: 8, testament: "old" },
+  {
+    name: "Song of Solomon",
+    abbreviation: "SoS",
+    chapters: 8,
+    testament: "old",
+  },
   { name: "Isaiah", abbreviation: "Isa", chapters: 66, testament: "old" },
   { name: "Jeremiah", abbreviation: "Jer", chapters: 52, testament: "old" },
   { name: "Lamentations", abbreviation: "Lam", chapters: 5, testament: "old" },
@@ -101,14 +105,34 @@ const BIBLE_BOOKS: BibleBook[] = [
   { name: "John", abbreviation: "Joh", chapters: 21, testament: "new" },
   { name: "Acts", abbreviation: "Act", chapters: 28, testament: "new" },
   { name: "Romans", abbreviation: "Rom", chapters: 16, testament: "new" },
-  { name: "1 Corinthians", abbreviation: "1Co", chapters: 16, testament: "new" },
-  { name: "2 Corinthians", abbreviation: "2Co", chapters: 13, testament: "new" },
+  {
+    name: "1 Corinthians",
+    abbreviation: "1Co",
+    chapters: 16,
+    testament: "new",
+  },
+  {
+    name: "2 Corinthians",
+    abbreviation: "2Co",
+    chapters: 13,
+    testament: "new",
+  },
   { name: "Galatians", abbreviation: "Gal", chapters: 6, testament: "new" },
   { name: "Ephesians", abbreviation: "Eph", chapters: 6, testament: "new" },
   { name: "Philippians", abbreviation: "Phi", chapters: 4, testament: "new" },
   { name: "Colossians", abbreviation: "Col", chapters: 4, testament: "new" },
-  { name: "1 Thessalonians", abbreviation: "1Th", chapters: 5, testament: "new" },
-  { name: "2 Thessalonians", abbreviation: "2Th", chapters: 3, testament: "new" },
+  {
+    name: "1 Thessalonians",
+    abbreviation: "1Th",
+    chapters: 5,
+    testament: "new",
+  },
+  {
+    name: "2 Thessalonians",
+    abbreviation: "2Th",
+    chapters: 3,
+    testament: "new",
+  },
   { name: "1 Timothy", abbreviation: "1Ti", chapters: 6, testament: "new" },
   { name: "2 Timothy", abbreviation: "2Ti", chapters: 4, testament: "new" },
   { name: "Titus", abbreviation: "Tit", chapters: 3, testament: "new" },
@@ -171,11 +195,12 @@ const READING_PLANS: ReadingPlan[] = [
 ];
 
 const BibleStudy: React.FC = () => {
-  const { user } = useAuth();
   const { showToast } = useToast();
 
   // Main state
-  const [activeTab, setActiveTab] = useState<"read" | "plans" | "bookmarks" | "search" | "discussion">("read");
+  const [activeTab, setActiveTab] = useState<
+    "read" | "plans" | "bookmarks" | "search" | "discussion"
+  >("read");
   const [currentBook, setCurrentBook] = useState<string>("Genesis");
   const [currentChapter, setCurrentChapter] = useState<number>(1);
   const [currentVersion, setCurrentVersion] = useState<string>("niv");
@@ -194,14 +219,20 @@ const BibleStudy: React.FC = () => {
 
   // Reading Plans
   const [activePlan, setActivePlan] = useState<ReadingPlan | null>(null);
-  const [planProgress, setPlanProgress] = useState<{ [key: string]: boolean }>({});
+  const [planProgress, setPlanProgress] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
   // UI state
   const [showBookSelector, setShowBookSelector] = useState(false);
   const [showChapterSelector, setShowChapterSelector] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [showNoteModal, setShowNoteModal] = useState(false);
-  const [noteVerse, setNoteVerse] = useState<{ book: string; chapter: number; verse: number } | null>(null);
+  const [noteVerse, setNoteVerse] = useState<{
+    book: string;
+    chapter: number;
+    verse: number;
+  } | null>(null);
 
   useEffect(() => {
     loadChapter(currentBook, currentChapter, currentVersion);
@@ -210,20 +241,24 @@ const BibleStudy: React.FC = () => {
     loadReadingPlan();
   }, [currentBook, currentChapter, currentVersion]);
 
-  const loadChapter = async (book: string, chapter: number, version: string) => {
+  const loadChapter = async (
+    book: string,
+    chapter: number,
+    version: string
+  ) => {
     setLoading(true);
     try {
-      // This would connect to a Bible API like bible-api.com or ESV API
-      // For now, using mock data
-      const mockVerses: BibleVerse[] = Array.from({ length: 31 }, (_, i) => ({
-        book,
-        chapter,
-        verse: i + 1,
-        text: `This is verse ${i + 1} of ${book} chapter ${chapter}. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`,
-        version,
-      }));
-      setVerses(mockVerses);
-      
+      // Fetch from backend chapter endpoint (calls public Bible API)
+      type ChapterResponse = {
+        verses: BibleVerse[];
+        version: string;
+        translation?: string;
+      };
+      const data = await api.get<ChapterResponse>("/bible/chapter", {
+        query: { book, chapter, version },
+      });
+      setVerses(data.verses);
+
       // Mark as read in history
       await markChapterAsRead(book, chapter);
     } catch (error) {
@@ -248,7 +283,7 @@ const BibleStudy: React.FC = () => {
 
   const searchVerses = async (query: string) => {
     if (!query.trim()) return;
-    
+
     setSearching(true);
     try {
       // Mock search results
@@ -279,6 +314,20 @@ const BibleStudy: React.FC = () => {
 
   const addBookmark = async (verse: BibleVerse, note?: string) => {
     try {
+      // Toggle: if bookmark exists, delete it; else create
+      const existing = bookmarks.find(
+        (b) =>
+          b.book === verse.book &&
+          b.chapter === verse.chapter &&
+          b.verse === verse.verse
+      );
+      if (existing) {
+        await api.del(`/bible/bookmarks/${existing.id}`);
+        setBookmarks((prev) => prev.filter((b) => b.id !== existing.id));
+        showToast({ message: "Bookmark removed", type: "success" });
+        return;
+      }
+
       const bookmark = await api.post<Bookmark>("/bible/bookmarks", {
         book: verse.book,
         chapter: verse.chapter,
@@ -286,7 +335,7 @@ const BibleStudy: React.FC = () => {
         text: verse.text,
         note,
       });
-      setBookmarks(prev => [bookmark, ...prev]);
+      setBookmarks((prev) => [bookmark, ...prev]);
       showToast({ message: "Verse bookmarked!", type: "success" });
     } catch (error) {
       console.error("Failed to add bookmark:", error);
@@ -296,6 +345,20 @@ const BibleStudy: React.FC = () => {
 
   const addHighlight = async (verse: BibleVerse, color: string) => {
     try {
+      // Toggle: if highlight exists, delete it; else create
+      const existing = highlights.find(
+        (h) =>
+          h.book === verse.book &&
+          h.chapter === verse.chapter &&
+          h.verse === verse.verse
+      );
+      if (existing) {
+        await api.del(`/bible/highlights/${existing.id}`);
+        setHighlights((prev) => prev.filter((h) => h.id !== existing.id));
+        showToast({ message: "Highlight removed", type: "success" });
+        return;
+      }
+
       const highlight = await api.post<Highlight>("/bible/highlights", {
         book: verse.book,
         chapter: verse.chapter,
@@ -303,7 +366,7 @@ const BibleStudy: React.FC = () => {
         text: verse.text,
         color,
       });
-      setHighlights(prev => [highlight, ...prev]);
+      setHighlights((prev) => [highlight, ...prev]);
       showToast({ message: "Verse highlighted!", type: "success" });
     } catch (error) {
       console.error("Failed to add highlight:", error);
@@ -331,7 +394,10 @@ const BibleStudy: React.FC = () => {
 
   const loadReadingPlan = async () => {
     try {
-      const plan = await api.get<{ plan: ReadingPlan; progress: { [key: string]: boolean } }>("/bible/reading-plan");
+      const plan = await api.get<{
+        plan: ReadingPlan;
+        progress: { [key: string]: boolean };
+      }>("/bible/reading-plan");
       if (plan.plan) {
         setActivePlan(plan.plan);
         setPlanProgress(plan.progress);
@@ -343,7 +409,7 @@ const BibleStudy: React.FC = () => {
 
   const startReadingPlan = async (planId: string) => {
     try {
-      const plan = READING_PLANS.find(p => p.id === planId);
+      const plan = READING_PLANS.find((p) => p.id === planId);
       if (plan) {
         await api.post("/bible/reading-plan", { planId });
         setActivePlan(plan);
@@ -356,9 +422,34 @@ const BibleStudy: React.FC = () => {
     }
   };
 
-  const getCurrentBook = () => BIBLE_BOOKS.find(book => book.name === currentBook);
-  const getVerseHighlight = (verse: BibleVerse) => 
-    highlights.find(h => h.book === verse.book && h.chapter === verse.chapter && h.verse === verse.verse);
+  const getCurrentBook = () =>
+    BIBLE_BOOKS.find((book) => book.name === currentBook);
+  const getVerseHighlight = (verse: BibleVerse) =>
+    highlights.find(
+      (h) =>
+        h.book === verse.book &&
+        h.chapter === verse.chapter &&
+        h.verse === verse.verse
+    );
+
+  const isBookmarked = (verse: BibleVerse) =>
+    bookmarks.some(
+      (b) =>
+        b.book === verse.book &&
+        b.chapter === verse.chapter &&
+        b.verse === verse.verse
+    );
+
+  const removeBookmarkById = async (id: number) => {
+    try {
+      await api.del(`/bible/bookmarks/${id}`);
+      setBookmarks((prev) => prev.filter((b) => b.id !== id));
+      showToast({ message: "Bookmark removed", type: "success" });
+    } catch (error) {
+      console.error("Failed to remove bookmark:", error);
+      showToast({ message: "Failed to remove bookmark", type: "error" });
+    }
+  };
 
   const navigateChapter = (direction: "prev" | "next") => {
     const book = getCurrentBook();
@@ -369,7 +460,9 @@ const BibleStudy: React.FC = () => {
         setCurrentChapter(currentChapter + 1);
       } else {
         // Go to next book
-        const currentIndex = BIBLE_BOOKS.findIndex(b => b.name === currentBook);
+        const currentIndex = BIBLE_BOOKS.findIndex(
+          (b) => b.name === currentBook
+        );
         if (currentIndex < BIBLE_BOOKS.length - 1) {
           setCurrentBook(BIBLE_BOOKS[currentIndex + 1].name);
           setCurrentChapter(1);
@@ -380,7 +473,9 @@ const BibleStudy: React.FC = () => {
         setCurrentChapter(currentChapter - 1);
       } else {
         // Go to previous book
-        const currentIndex = BIBLE_BOOKS.findIndex(b => b.name === currentBook);
+        const currentIndex = BIBLE_BOOKS.findIndex(
+          (b) => b.name === currentBook
+        );
         if (currentIndex > 0) {
           const prevBook = BIBLE_BOOKS[currentIndex - 1];
           setCurrentBook(prevBook.name);
@@ -398,33 +493,33 @@ const BibleStudy: React.FC = () => {
           <h1>📖 Bible Study</h1>
           <p>Study God's Word with modern tools</p>
         </div>
-        
+
         <div className="bible-nav-tabs">
-          <button 
+          <button
             className={`tab-btn ${activeTab === "read" ? "active" : ""}`}
             onClick={() => setActiveTab("read")}
           >
             📚 Read
           </button>
-          <button 
+          <button
             className={`tab-btn ${activeTab === "plans" ? "active" : ""}`}
             onClick={() => setActiveTab("plans")}
           >
             📅 Plans
           </button>
-          <button 
+          <button
             className={`tab-btn ${activeTab === "bookmarks" ? "active" : ""}`}
             onClick={() => setActiveTab("bookmarks")}
           >
             🔖 Bookmarks
           </button>
-          <button 
+          <button
             className={`tab-btn ${activeTab === "search" ? "active" : ""}`}
             onClick={() => setActiveTab("search")}
           >
             🔍 Search
           </button>
-          <button 
+          <button
             className={`tab-btn ${activeTab === "discussion" ? "active" : ""}`}
             onClick={() => setActiveTab("discussion")}
           >
@@ -439,39 +534,43 @@ const BibleStudy: React.FC = () => {
           {/* Reader Controls */}
           <div className="reader-controls">
             <div className="navigation-controls">
-              <button 
+              <button
                 className="nav-btn"
                 onClick={() => navigateChapter("prev")}
                 disabled={currentBook === "Genesis" && currentChapter === 1}
               >
                 ← Previous
               </button>
-              
+
               <div className="chapter-selector">
                 <div className="book-chapter-display">
-                  <button 
+                  <button
                     className="book-btn"
                     onClick={() => setShowBookSelector(!showBookSelector)}
                   >
                     {currentBook} ▼
                   </button>
-                  <button 
+                  <button
                     className="chapter-btn"
                     onClick={() => setShowChapterSelector(!showChapterSelector)}
                   >
                     Chapter {currentChapter} ▼
                   </button>
                 </div>
-                
+
                 {showBookSelector && (
                   <div className="book-selector-dropdown">
                     <div className="testament-section">
                       <h4>Old Testament</h4>
                       <div className="books-grid">
-                        {BIBLE_BOOKS.filter(book => book.testament === "old").map(book => (
+                        {BIBLE_BOOKS.filter(
+                          (book) => book.testament === "old"
+                        ).map((book) => (
                           <button
                             key={book.name}
-                            className={`book-option ${currentBook === book.name ? "active" : ""}`}
+                            className={`book-option ${
+                              currentBook === book.name ? "active" : ""
+                            }`}
                             onClick={() => {
                               setCurrentBook(book.name);
                               setCurrentChapter(1);
@@ -486,10 +585,14 @@ const BibleStudy: React.FC = () => {
                     <div className="testament-section">
                       <h4>New Testament</h4>
                       <div className="books-grid">
-                        {BIBLE_BOOKS.filter(book => book.testament === "new").map(book => (
+                        {BIBLE_BOOKS.filter(
+                          (book) => book.testament === "new"
+                        ).map((book) => (
                           <button
                             key={book.name}
-                            className={`book-option ${currentBook === book.name ? "active" : ""}`}
+                            className={`book-option ${
+                              currentBook === book.name ? "active" : ""
+                            }`}
                             onClick={() => {
                               setCurrentBook(book.name);
                               setCurrentChapter(1);
@@ -503,28 +606,33 @@ const BibleStudy: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {showChapterSelector && (
                   <div className="chapter-selector-dropdown">
                     <div className="chapters-grid">
-                      {Array.from({ length: getCurrentBook()?.chapters || 1 }, (_, i) => (
-                        <button
-                          key={i + 1}
-                          className={`chapter-option ${currentChapter === i + 1 ? "active" : ""}`}
-                          onClick={() => {
-                            setCurrentChapter(i + 1);
-                            setShowChapterSelector(false);
-                          }}
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
+                      {Array.from(
+                        { length: getCurrentBook()?.chapters || 1 },
+                        (_, i) => (
+                          <button
+                            key={i + 1}
+                            className={`chapter-option ${
+                              currentChapter === i + 1 ? "active" : ""
+                            }`}
+                            onClick={() => {
+                              setCurrentChapter(i + 1);
+                              setShowChapterSelector(false);
+                            }}
+                          >
+                            {i + 1}
+                          </button>
+                        )
+                      )}
                     </div>
                   </div>
                 )}
               </div>
-              
-              <button 
+
+              <button
                 className="nav-btn"
                 onClick={() => navigateChapter("next")}
                 disabled={currentBook === "Revelation" && currentChapter === 22}
@@ -532,14 +640,14 @@ const BibleStudy: React.FC = () => {
                 Next →
               </button>
             </div>
-            
+
             <div className="version-selector">
-              <select 
+              <select
                 value={currentVersion}
                 onChange={(e) => setCurrentVersion(e.target.value)}
                 className="version-select"
               >
-                {BIBLE_VERSIONS.map(version => (
+                {BIBLE_VERSIONS.map((version) => (
                   <option key={version.id} value={version.id}>
                     {version.abbreviation}
                   </option>
@@ -551,12 +659,19 @@ const BibleStudy: React.FC = () => {
           {/* Chapter Content */}
           <div className="chapter-content">
             <div className="chapter-header">
-              <h2>{currentBook} {currentChapter}</h2>
+              <h2>
+                {currentBook} {currentChapter}
+              </h2>
               <div className="chapter-meta">
-                <span className="version-indicator">{BIBLE_VERSIONS.find(v => v.id === currentVersion)?.abbreviation}</span>
+                <span className="version-indicator">
+                  {
+                    BIBLE_VERSIONS.find((v) => v.id === currentVersion)
+                      ?.abbreviation
+                  }
+                </span>
               </div>
             </div>
-            
+
             {loading ? (
               <div className="loading-state">
                 <div className="loading-spinner"></div>
@@ -564,61 +679,91 @@ const BibleStudy: React.FC = () => {
               </div>
             ) : (
               <div className="verses-container">
+                {verses.length === 0 && !loading && (
+                  <div className="no-verses">
+                    No verses found. Click navigation to load chapter.
+                  </div>
+                )}
                 {verses.map((verse) => {
                   const highlight = getVerseHighlight(verse);
                   return (
-                    <div 
+                    <div
                       key={verse.verse}
-                      className={`verse ${highlight ? 'highlighted' : ''} ${selectedVerses.includes(verse.verse) ? 'selected' : ''}`}
-                      style={highlight ? { backgroundColor: highlight.color + '30' } : {}}
+                      className={`verse ${highlight ? "highlighted" : ""} ${
+                        selectedVerses.includes(verse.verse) ? "selected" : ""
+                      }`}
+                      style={
+                        highlight
+                          ? { backgroundColor: highlight.color + "30" }
+                          : {}
+                      }
                       onClick={() => {
                         if (selectedVerses.includes(verse.verse)) {
-                          setSelectedVerses(prev => prev.filter(v => v !== verse.verse));
+                          setSelectedVerses((prev) =>
+                            prev.filter((v) => v !== verse.verse)
+                          );
                         } else {
-                          setSelectedVerses(prev => [...prev, verse.verse]);
+                          setSelectedVerses((prev) => [...prev, verse.verse]);
                         }
                       }}
                     >
                       <span className="verse-number">{verse.verse}</span>
                       <span className="verse-text">{verse.text}</span>
                       <div className="verse-actions">
-                        <button 
+                        <button
                           className="action-btn"
                           onClick={(e) => {
                             e.stopPropagation();
                             addBookmark(verse);
                           }}
-                          title="Bookmark verse"
+                          title={
+                            isBookmarked(verse)
+                              ? "Remove bookmark"
+                              : "Bookmark verse"
+                          }
                         >
-                          🔖
+                          {isBookmarked(verse) ? "✔️" : "🔖"}
                         </button>
-                        <button 
+                        <button
                           className="action-btn"
                           onClick={(e) => {
                             e.stopPropagation();
                             addHighlight(verse, "#ffeb3b");
                           }}
-                          title="Highlight verse"
+                          title={
+                            getVerseHighlight(verse)
+                              ? "Remove highlight"
+                              : "Highlight verse"
+                          }
                         >
-                          ✨
+                          {getVerseHighlight(verse) ? "🗑️" : "✨"}
                         </button>
-                        <button 
+                        <button
                           className="action-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setNoteVerse({ book: verse.book, chapter: verse.chapter, verse: verse.verse });
+                            setNoteVerse({
+                              book: verse.book,
+                              chapter: verse.chapter,
+                              verse: verse.verse,
+                            });
                             setShowNoteModal(true);
                           }}
                           title="Add note"
                         >
                           📝
                         </button>
-                        <button 
+                        <button
                           className="action-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigator.clipboard.writeText(`${verse.book} ${verse.chapter}:${verse.verse} - ${verse.text}`);
-                            showToast({ message: "Verse copied to clipboard!", type: "success" });
+                            navigator.clipboard.writeText(
+                              `${verse.book} ${verse.chapter}:${verse.verse} - ${verse.text}`
+                            );
+                            showToast({
+                              message: "Verse copied to clipboard!",
+                              type: "success",
+                            });
                           }}
                           title="Copy verse"
                         >
@@ -639,7 +784,7 @@ const BibleStudy: React.FC = () => {
         <div className="bible-content">
           <div className="plans-section">
             <h3>📅 Reading Plans</h3>
-            
+
             {activePlan ? (
               <div className="active-plan">
                 <div className="plan-header">
@@ -647,17 +792,30 @@ const BibleStudy: React.FC = () => {
                   <p>{activePlan.description}</p>
                   <div className="plan-progress">
                     <div className="progress-bar">
-                      <div 
+                      <div
                         className="progress-fill"
-                        style={{ width: `${(Object.keys(planProgress).filter(key => planProgress[key]).length / activePlan.duration) * 100}%` }}
+                        style={{
+                          width: `${
+                            (Object.keys(planProgress).filter(
+                              (key) => planProgress[key]
+                            ).length /
+                              activePlan.duration) *
+                            100
+                          }%`,
+                        }}
                       ></div>
                     </div>
                     <span className="progress-text">
-                      {Object.keys(planProgress).filter(key => planProgress[key]).length} / {activePlan.duration} days
+                      {
+                        Object.keys(planProgress).filter(
+                          (key) => planProgress[key]
+                        ).length
+                      }{" "}
+                      / {activePlan.duration} days
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="todays-reading">
                   <h5>Today's Reading</h5>
                   <div className="reading-assignments">
@@ -676,12 +834,12 @@ const BibleStudy: React.FC = () => {
               <div className="available-plans">
                 <h4>Choose a Reading Plan</h4>
                 <div className="plans-grid">
-                  {READING_PLANS.map(plan => (
+                  {READING_PLANS.map((plan) => (
                     <div key={plan.id} className="plan-card">
                       <h5>{plan.name}</h5>
                       <p>{plan.description}</p>
                       <div className="plan-duration">{plan.duration} days</div>
-                      <button 
+                      <button
                         className="plan-start-btn"
                         onClick={() => startReadingPlan(plan.id)}
                       >
@@ -701,13 +859,15 @@ const BibleStudy: React.FC = () => {
         <div className="bible-content">
           <div className="bookmarks-section">
             <h3>🔖 Your Bookmarks</h3>
-            
+
             {bookmarks.length > 0 ? (
               <div className="bookmarks-list">
-                {bookmarks.map(bookmark => (
+                {bookmarks.map((bookmark) => (
                   <div key={bookmark.id} className="bookmark-item">
                     <div className="bookmark-reference">
-                      <strong>{bookmark.book} {bookmark.chapter}:{bookmark.verse}</strong>
+                      <strong>
+                        {bookmark.book} {bookmark.chapter}:{bookmark.verse}
+                      </strong>
                     </div>
                     <div className="bookmark-text">{bookmark.text}</div>
                     {bookmark.note && (
@@ -719,7 +879,7 @@ const BibleStudy: React.FC = () => {
                       Saved {new Date(bookmark.createdAt).toLocaleDateString()}
                     </div>
                     <div className="bookmark-actions">
-                      <button 
+                      <button
                         className="bookmark-go-btn"
                         onClick={() => {
                           setCurrentBook(bookmark.book);
@@ -728,6 +888,12 @@ const BibleStudy: React.FC = () => {
                         }}
                       >
                         Go to verse
+                      </button>
+                      <button
+                        className="bookmark-remove-btn"
+                        onClick={() => removeBookmarkById(bookmark.id)}
+                      >
+                        Remove
                       </button>
                     </div>
                   </div>
@@ -749,7 +915,7 @@ const BibleStudy: React.FC = () => {
         <div className="bible-content">
           <div className="search-section">
             <h3>🔍 Search Scripture</h3>
-            
+
             <div className="search-controls">
               <div className="search-input-container">
                 <input
@@ -758,9 +924,11 @@ const BibleStudy: React.FC = () => {
                   placeholder="Search for verses, keywords, or references..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && searchVerses(searchQuery)}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && searchVerses(searchQuery)
+                  }
                 />
-                <button 
+                <button
                   className="search-btn"
                   onClick={() => searchVerses(searchQuery)}
                   disabled={searching || !searchQuery.trim()}
@@ -768,15 +936,19 @@ const BibleStudy: React.FC = () => {
                   {searching ? "Searching..." : "Search"}
                 </button>
               </div>
-              
+
               <div className="search-filters">
                 <select className="filter-select">
                   <option value="all">All Books</option>
                   <option value="old">Old Testament</option>
                   <option value="new">New Testament</option>
                 </select>
-                <select className="filter-select" value={currentVersion} onChange={(e) => setCurrentVersion(e.target.value)}>
-                  {BIBLE_VERSIONS.map(version => (
+                <select
+                  className="filter-select"
+                  value={currentVersion}
+                  onChange={(e) => setCurrentVersion(e.target.value)}
+                >
+                  {BIBLE_VERSIONS.map((version) => (
                     <option key={version.id} value={version.id}>
                       {version.abbreviation}
                     </option>
@@ -784,7 +956,7 @@ const BibleStudy: React.FC = () => {
                 </select>
               </div>
             </div>
-            
+
             {searchResults.length > 0 && (
               <div className="search-results">
                 <h4>Search Results ({searchResults.length})</h4>
@@ -792,11 +964,13 @@ const BibleStudy: React.FC = () => {
                   {searchResults.map((result, index) => (
                     <div key={index} className="search-result-item">
                       <div className="result-reference">
-                        <strong>{result.book} {result.chapter}:{result.verse}</strong>
+                        <strong>
+                          {result.book} {result.chapter}:{result.verse}
+                        </strong>
                       </div>
                       <div className="result-text">{result.text}</div>
                       <div className="result-actions">
-                        <button 
+                        <button
                           className="result-go-btn"
                           onClick={() => {
                             setCurrentBook(result.book);
@@ -806,7 +980,7 @@ const BibleStudy: React.FC = () => {
                         >
                           Go to verse
                         </button>
-                        <button 
+                        <button
                           className="result-bookmark-btn"
                           onClick={() => addBookmark(result)}
                         >
@@ -827,7 +1001,7 @@ const BibleStudy: React.FC = () => {
         <div className="bible-content">
           <div className="discussion-section">
             <h3>💬 Bible Discussion</h3>
-            
+
             <div className="discussion-topics">
               <div className="topic-item">
                 <div className="topic-header">
@@ -839,7 +1013,7 @@ const BibleStudy: React.FC = () => {
                   <span>Last post: 2 hours ago by John D.</span>
                 </div>
               </div>
-              
+
               <div className="topic-item">
                 <div className="topic-header">
                   <h4>Prayer Requests</h4>
@@ -850,7 +1024,7 @@ const BibleStudy: React.FC = () => {
                   <span>Last post: 1 hour ago by Sarah M.</span>
                 </div>
               </div>
-              
+
               <div className="topic-item">
                 <div className="topic-header">
                   <h4>Bible Study Questions</h4>
@@ -862,7 +1036,7 @@ const BibleStudy: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <button className="new-discussion-btn">
               💬 Start New Discussion
             </button>
@@ -890,7 +1064,7 @@ const BibleStudy: React.FC = () => {
               />
             </div>
             <div className="note-modal-actions">
-              <button 
+              <button
                 className="note-cancel-btn"
                 onClick={() => {
                   setShowNoteModal(false);
@@ -900,14 +1074,15 @@ const BibleStudy: React.FC = () => {
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="note-save-btn"
                 onClick={async () => {
                   if (noteVerse) {
-                    const verse = verses.find(v => 
-                      v.book === noteVerse.book && 
-                      v.chapter === noteVerse.chapter && 
-                      v.verse === noteVerse.verse
+                    const verse = verses.find(
+                      (v) =>
+                        v.book === noteVerse.book &&
+                        v.chapter === noteVerse.chapter &&
+                        v.verse === noteVerse.verse
                     );
                     if (verse) {
                       await addBookmark(verse, noteText);

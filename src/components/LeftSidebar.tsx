@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useSidebar } from "../context/SidebarContext";
 import "../styles/LeftSidebar.css";
 
 interface DailyVerse {
@@ -98,6 +99,7 @@ interface LeftSidebarProps {
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed = false }) => {
   const { user } = useAuth();
+  const { activeSection, setActiveSection } = useSidebar();
   // Deterministic daily index; rotates verse each calendar day
   const MS_PER_DAY = 86_400_000;
   const dayIndex = Math.floor(Date.now() / MS_PER_DAY);
@@ -112,19 +114,42 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed = false }) => {
       id: "feed",
       label: "Feed",
       icon: "🏠",
-      href: "/dashboard",
-      isActive: true,
+      isActive: activeSection === "feed",
     },
     {
       id: "profile",
       label: "Profile",
       icon: "👤",
       href: `/profile/${user?.id}`,
+      isActive: activeSection === "profile",
     },
-    { id: "community", label: "Community", icon: "👥", href: "/community" },
-    { id: "prayer", label: "Prayer Requests", icon: "🙏", href: "/prayers" },
-    { id: "study", label: "Bible Study", icon: "📖", href: "/study" },
-    { id: "events", label: "Events", icon: "📅", href: "/events" },
+    {
+      id: "community",
+      label: "Community",
+      icon: "👥",
+      href: "/community",
+      isActive: activeSection === "community",
+    },
+    {
+      id: "prayer",
+      label: "Prayer Requests",
+      icon: "🙏",
+      href: "/prayers",
+      isActive: activeSection === "prayer",
+    },
+    {
+      id: "study",
+      label: "Bible Study",
+      icon: "📖",
+      isActive: activeSection === "study",
+    },
+    {
+      id: "events",
+      label: "Events",
+      icon: "📅",
+      href: "/events",
+      isActive: activeSection === "events",
+    },
   ];
 
   // Stats section removed per request; no data fetching needed
@@ -173,13 +198,25 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed = false }) => {
           <ul className="nav-list">
             {navigationItems.map((item) => (
               <li key={item.id} className="nav-item">
-                <Link
-                  to={item.href}
-                  className={`nav-link ${item.isActive ? "active" : ""}`}
-                >
-                  <span className="nav-icon">{item.icon}</span>
-                  <span className="nav-label">{item.label}</span>
-                </Link>
+                {item.href ? (
+                  <Link
+                    to={item.href}
+                    className={`nav-link ${item.isActive ? "active" : ""}`}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    <span className="nav-label">{item.label}</span>
+                  </Link>
+                ) : (
+                  <button
+                    className={`nav-link nav-button ${
+                      item.isActive ? "active" : ""
+                    }`}
+                    onClick={() => setActiveSection(item.id)}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    <span className="nav-label">{item.label}</span>
+                  </button>
+                )}
               </li>
             ))}
           </ul>

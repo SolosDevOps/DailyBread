@@ -1296,7 +1296,9 @@ const ProfilePage: React.FC = () => {
                     Delete Account
                   </h3>
                   <p className="modern-danger-text">
-                    <strong>⚠️ Warning:</strong> This action will permanently delete your account and all associated data including posts, comments, likes, and relationships. This cannot be undone.
+                    <strong>⚠️ Warning:</strong> This action will permanently
+                    delete your account and all associated data including posts,
+                    comments, likes, and relationships. This cannot be undone.
                   </p>
 
                   {!showDeleteConfirm ? (

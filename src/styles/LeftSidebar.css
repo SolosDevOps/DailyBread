@@ -222,6 +222,10 @@
 	box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
+.nav-button {
+	text-align: left;
+}
+
 .nav-icon {
 	font-size: 1.125rem;
 	width: 20px;

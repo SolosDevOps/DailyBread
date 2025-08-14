@@ -14,6 +14,7 @@ import commentsRoutes from "./routes/comments";
 import followRoutes from "./routes/follow";
 import notificationRoutes from "./routes/notifications";
 import oauthRoutes from "./routes/oauthRoutes";
+import bibleRoutes from "./routes/bible";
 import { cleanupSeenNotifications } from "./controllers/notificationController";
 import { passportSessionlessInit } from "./passport";
 
@@ -60,6 +61,7 @@ app.use("/api/likes", likesRoutes);
 app.use("/api/comments", commentsRoutes);
 app.use("/api/follow", followRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/bible", bibleRoutes);
 
 const router = express.Router();
 

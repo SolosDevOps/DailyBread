@@ -31,6 +31,10 @@ model User {
   following              Follow[]        @relation("UserFollowing")
   notifications          Notification[]  @relation("UserNotifications")
   notificationsTriggered Notification[]  @relation("NotificationTrigger")
+  bibleBookmarks         BibleBookmark[]
+  bibleHighlights        BibleHighlight[]
+  bibleReadingHistory    BibleReadingHistory[]
+  bibleReadingPlan       BibleReadingPlan?
 }
 
 model Post {
@@ -111,4 +115,69 @@ model Notification {
   user        User     @relation("UserNotifications", fields: [userId], references: [id])
   triggerUser User     @relation("NotificationTrigger", fields: [triggeredBy], references: [id])
   post        Post?    @relation(fields: [postId], references: [id])
+}
+
+model BibleBookmark {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  book      String
+  chapter   Int
+  verse     Int
+  text      String
+  note      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, book, chapter, verse])
+}
+
+model BibleHighlight {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  book      String
+  chapter   Int
+  verse     Int
+  text      String
+  color     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, book, chapter, verse])
+}
+
+model BibleReadingHistory {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  book     String
+  chapter  Int
+  dateRead DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, book, chapter, dateRead])
+}
+
+model BibleReadingPlan {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  planId          String
+  planName        String
+  planDescription String
+  duration        Int
+  startDate       DateTime @default(now())
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+  progress        BibleReadingProgress[]
+
+  @@unique([userId])
+}
+
+model BibleReadingProgress {
+  id             Int              @id @default(autoincrement())
+  readingPlanId  Int
+  day            Int
+  completed      Boolean          @default(false)
+  completedAt    DateTime?
+  readingPlan    BibleReadingPlan @relation(fields: [readingPlanId], references: [id])
+
+  @@unique([readingPlanId, day])
 }

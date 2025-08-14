@@ -4,6 +4,8 @@ interface SidebarContextType {
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   toggleSidebar: () => void;
+  activeSection: string;
+  setActiveSection: (section: string) => void;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
@@ -12,6 +14,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [activeSection, setActiveSection] = useState("feed");
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -19,7 +22,13 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <SidebarContext.Provider
-      value={{ sidebarCollapsed, setSidebarCollapsed, toggleSidebar }}
+      value={{
+        sidebarCollapsed,
+        setSidebarCollapsed,
+        toggleSidebar,
+        activeSection,
+        setActiveSection,
+      }}
     >
       {children}
     </SidebarContext.Provider>

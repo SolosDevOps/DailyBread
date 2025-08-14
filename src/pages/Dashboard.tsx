@@ -6,6 +6,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { useFeed } from "../context/FeedContext";
 import Navbar from "../components/Navbar";
 import LeftSidebar from "../components/LeftSidebar";
+import BibleStudy from "../components/BibleStudy";
 import "../styles/Dashboard.css";
 
 interface FriendUser {
@@ -1166,7 +1167,7 @@ const FriendsActivity: React.FC = () => {
 
 const Dashboard: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
-  const { sidebarCollapsed } = useSidebar();
+  const { sidebarCollapsed, activeSection } = useSidebar();
 
   useEffect(() => {
     document.body.classList.toggle("sidebar-collapsed", sidebarCollapsed);
@@ -1187,14 +1188,20 @@ const Dashboard: React.FC = () => {
       <LeftSidebar collapsed={sidebarCollapsed} />
       <div className="db-shell">
         <main className="db-main">
-          <div className="db-feed-container">
-            <CreatePost onCreated={() => window.location.reload()} />
-            <PostsList />
-          </div>
+          {activeSection === "study" ? (
+            <BibleStudy />
+          ) : (
+            <div className="db-feed-container">
+              <CreatePost onCreated={() => window.location.reload()} />
+              <PostsList />
+            </div>
+          )}
         </main>
-        <aside className="db-right">
-          <FriendsActivity />
-        </aside>
+        {activeSection !== "study" && (
+          <aside className="db-right">
+            <FriendsActivity />
+          </aside>
+        )}
       </div>
     </div>
   );
