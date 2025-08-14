@@ -8,7 +8,7 @@ export const getNotifications = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
 
-    const notifications = await prisma.notification.findMany({
+    const notifications = await (prisma as any).notification.findMany({
       where: { userId },
       include: {
         triggerUser: {
@@ -41,7 +41,7 @@ export const getUnreadCount = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
 
-    const count = await prisma.notification.count({
+    const count = await (prisma as any).notification.count({
       where: {
         userId,
         seen: false,
@@ -61,7 +61,7 @@ export const markAsSeen = async (req: Request, res: Response) => {
     const { notificationId } = req.params;
     const userId = (req as any).user.id;
 
-    await prisma.notification.updateMany({
+    await (prisma as any).notification.updateMany({
       where: {
         id: parseInt(notificationId),
         userId, // Ensure user can only mark their own notifications
@@ -84,7 +84,7 @@ export const markAllAsSeen = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
 
-    await prisma.notification.updateMany({
+    await (prisma as any).notification.updateMany({
       where: {
         userId,
         seen: false,
@@ -115,7 +115,7 @@ export const createNotification = async (
     if (userId === triggeredBy) return;
 
     // Check if similar notification already exists (to prevent spam)
-    const existing = await prisma.notification.findFirst({
+    const existing = await (prisma as any).notification.findFirst({
       where: {
         userId,
         triggeredBy,
@@ -129,7 +129,7 @@ export const createNotification = async (
 
     if (existing) return; // Don't create duplicate notifications
 
-    await prisma.notification.create({
+    await (prisma as any).notification.create({
       data: {
         userId,
         triggeredBy,
@@ -148,7 +148,7 @@ export const cleanupSeenNotifications = async () => {
   try {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    await prisma.notification.deleteMany({
+    await (prisma as any).notification.deleteMany({
       where: {
         seen: true,
         seenAt: {

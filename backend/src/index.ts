@@ -1,4 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
+import dotenv from "dotenv";
+dotenv.config();
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -11,21 +13,45 @@ import likesRoutes from "./routes/likes";
 import commentsRoutes from "./routes/comments";
 import followRoutes from "./routes/follow";
 import notificationRoutes from "./routes/notifications";
+import oauthRoutes from "./routes/oauthRoutes";
 import { cleanupSeenNotifications } from "./controllers/notificationController";
+import { passportSessionlessInit } from "./passport";
 
 const app = express();
 
 app.use(cookieParser());
+// CORS: allow dev hosts (localhost/127.0.0.1 on any port) and FRONTEND_URL
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const allowed = new Set([
+  FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+]);
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowed.has(origin) ||
+        /^http:\/\/localhost:\d+$/.test(origin) ||
+        /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
 app.use(express.json());
+// Initialize OAuth providers (passport)
+passportSessionlessInit(app);
 
 // Route mounts
 app.use("/api/auth", authRoutes);
+app.use("/api/auth/oauth", oauthRoutes);
 app.use("/api/posts", postsRoutes);
 app.use("/api/friends", friendsRoutes);
 app.use("/api/search", searchRoutes);

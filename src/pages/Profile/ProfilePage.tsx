@@ -15,6 +15,8 @@ interface ProfileUser {
   email?: string;
   bio?: string | null;
   profilePicture?: string | null;
+  coverImage?: string | null;
+  coverImagePosition?: string | null;
   createdAt?: string;
   postsCount?: number;
   friendsCount?: number;
@@ -63,6 +65,10 @@ const ProfilePage: React.FC = () => {
   );
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showCoverMenu, setShowCoverMenu] = useState(false);
+  const [coverDragging, setCoverDragging] = useState(false);
+  const [coverPosition, setCoverPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const [formData, setFormData] = useState<ProfileFormData>({
     username: "",
@@ -74,6 +80,9 @@ const ProfilePage: React.FC = () => {
   });
 
   const [formErrors, setFormErrors] = useState<Partial<ProfileFormData>>({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Post edit helpers
   function cancelEditPost() {
@@ -137,23 +146,46 @@ const ProfilePage: React.FC = () => {
     return () => document.body.classList.remove("sidebar-collapsed");
   }, [sidebarCollapsed]);
 
+  // Close cover menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showCoverMenu && !target.closest(".modern-cover-menu")) {
+        setShowCoverMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showCoverMenu]);
+
   const loadProfile = async () => {
     setLoading(true);
     setError(null);
     try {
       // If no ID is provided or ID matches current user, show current user's profile
       if (currentUser && (id === String(currentUser.id) || !id)) {
+        // Fetch real stats for the current user
+        const userProfile = await api.get<ProfileUser>(
+          `/users/${currentUser.id}`
+        );
         const profileData: ProfileUser = {
-          id: currentUser.id,
-          username: currentUser.username,
+          ...userProfile,
           email: currentUser.email || "",
-          bio: currentUser.bio || "",
           profilePicture: currentUser.profilePicture || null,
-          createdAt: currentUser.createdAt,
-          postsCount: 12, // Mock data
-          friendsCount: 8, // Mock data
         };
         setProfile(profileData);
+        // Initialize cover position if it exists
+        if (profileData.coverImagePosition) {
+          try {
+            const pos = JSON.parse(profileData.coverImagePosition);
+            setCoverPosition(pos);
+          } catch {
+            setCoverPosition({ x: 0, y: 0 });
+          }
+        }
         setIsOwnProfile(true);
         setFormData({
           username: profileData.username,
@@ -166,8 +198,10 @@ const ProfilePage: React.FC = () => {
 
         // Load user's posts
         try {
-          const userPosts = await api.get<Post[]>("/posts");
-          setPosts(userPosts.slice(0, 5)); // Show recent posts
+          const userPosts = await api.get<Post[]>(
+            `/users/${currentUser.id}/posts`
+          );
+          setPosts(userPosts);
         } catch {
           setPosts([]);
         }
@@ -226,12 +260,27 @@ const ProfilePage: React.FC = () => {
       if (isFollowing) {
         await api.del(`/follow/${profile.id}`);
         setIsFollowing(false);
+        // Optimistically decrement followers count
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                followersCount: Math.max(0, (prev.followersCount || 1) - 1),
+              }
+            : prev
+        );
         showToast({ message: "Unfollowed successfully", type: "success" });
         // Refresh the feed to remove unfollowed user's posts
         refreshFeed();
       } else {
         await api.post(`/follow/${profile.id}`);
         setIsFollowing(true);
+        // Optimistically increment followers count
+        setProfile((prev) =>
+          prev
+            ? { ...prev, followersCount: (prev.followersCount || 0) + 1 }
+            : prev
+        );
         showToast({ message: "Followed successfully", type: "success" });
         // Refresh the feed to include followed user's posts
         refreshFeed();
@@ -370,13 +419,16 @@ const ProfilePage: React.FC = () => {
 
     // Validate file
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
+      showToast({ message: "Please select an image file", type: "error" });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       // 5MB limit
-      setError("Image must be less than 5MB");
+      showToast({
+        message: "Profile picture must be less than 5MB",
+        type: "error",
+      });
       return;
     }
 
@@ -400,21 +452,226 @@ const ProfilePage: React.FC = () => {
             prev ? { ...prev, profilePicture: base64String } : null
           );
 
-          // Refresh auth context to update navbar
+          // Refresh auth context
           await refresh();
-        } catch (err: any) {
-          setError(err.message || "Failed to upload profile picture");
+
+          showToast({
+            message: "Profile picture updated successfully!",
+            type: "success",
+          });
+        } catch (error: any) {
+          const message = error.message || "Failed to update profile picture";
+          setError(message);
+          showToast({ message, type: "error" });
         } finally {
           setUploading(false);
         }
       };
 
+      reader.onerror = () => {
+        showToast({ message: "Failed to read image file", type: "error" });
+        setUploading(false);
+      };
+
       reader.readAsDataURL(file);
-    } catch (err: any) {
-      setError(err.message || "Failed to process image");
+    } catch (error: any) {
+      const message = "Failed to process image";
+      setError(message);
+      showToast({ message, type: "error" });
       setUploading(false);
     }
   };
+
+  const handleCoverImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      showToast({ message: "Please select an image file", type: "error" });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      // 10MB limit for cover
+      showToast({ message: "Image must be less than 10MB", type: "error" });
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64String = reader.result as string;
+
+          await api.put("/auth/cover-image", {
+            coverImage: base64String,
+            coverImagePosition: JSON.stringify(coverPosition),
+          });
+
+          setProfile((prev) =>
+            prev ? { ...prev, coverImage: base64String } : null
+          );
+
+          showToast({
+            message: "Cover image updated successfully!",
+            type: "success",
+          });
+          setShowCoverMenu(false);
+        } catch (error: any) {
+          const message = error.message || "Failed to update cover image";
+          setError(message);
+          showToast({ message, type: "error" });
+        } finally {
+          setUploading(false);
+        }
+      };
+
+      reader.onerror = () => {
+        showToast({ message: "Failed to read image file", type: "error" });
+        setUploading(false);
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error: any) {
+      const message = "Failed to process image";
+      setError(message);
+      showToast({ message, type: "error" });
+      setUploading(false);
+    }
+  };
+
+  const handleCoverMouseDown = (e: React.MouseEvent) => {
+    if (!isOwnProfile || !profile?.coverImage) return;
+    setCoverDragging(true);
+    setDragStart({
+      x: e.clientX - coverPosition.x,
+      y: e.clientY - coverPosition.y,
+    });
+  };
+
+  const handleCoverMouseMove = (e: React.MouseEvent) => {
+    if (!coverDragging) return;
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    setCoverPosition({
+      x: Math.max(-200, Math.min(200, newX)),
+      y: Math.max(-100, Math.min(100, newY)),
+    });
+  };
+
+  const handleCoverMouseUp = async () => {
+    if (!coverDragging) return;
+    setCoverDragging(false);
+
+    // Save position to backend
+    if (profile?.coverImage) {
+      try {
+        await api.put("/auth/cover-image", {
+          coverImage: profile.coverImage,
+          coverImagePosition: JSON.stringify(coverPosition),
+        });
+        showToast({ message: "Cover image position saved", type: "success" });
+      } catch (error: any) {
+        console.error("Failed to save cover position:", error);
+        showToast({ message: "Failed to save position", type: "error" });
+      }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      showToast({
+        message: "Password is required to delete account",
+        type: "error",
+      });
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Are you absolutely sure you want to delete your account? This action cannot be undone and will permanently delete all your posts, comments, and other data."
+      )
+    ) {
+      return;
+    }
+
+    setDeleteLoading(true);
+    setError(null);
+
+    try {
+      // Use fetch directly since api.del doesn't accept body
+      const response = await fetch(
+        `${
+          import.meta.env?.VITE_API_URL || "http://localhost:4001/api"
+        }/auth/account`,
+        {
+          method: "DELETE",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            password: deletePassword,
+          }),
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (data && (data.error || data.message)) ||
+          response.statusText ||
+          "Delete failed";
+        throw new Error(message);
+      }
+
+      showToast({
+        message:
+          "Account deleted successfully. You will be redirected to the homepage.",
+        type: "success",
+      });
+
+      // Clear auth context and redirect
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    } catch (error: any) {
+      const message = error.message || "Failed to delete account";
+      setError(message);
+      showToast({ message, type: "error" });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="db-wrapper">
+        <Navbar />
+        <LeftSidebar collapsed={sidebarCollapsed} />
+        <div className="modern-profile-container">
+          <div className="modern-loading">Loading profile...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error === "User not found") {
+    return (
+      <div className="db-wrapper">
+        <Navbar />
+        <LeftSidebar collapsed={sidebarCollapsed} />
+        <div className="modern-profile-container">
+          <div className="modern-error">User not found</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
@@ -458,8 +715,94 @@ const ProfilePage: React.FC = () => {
       <div className="modern-profile-container">
         {/* Cover Photo Section */}
         <div className="modern-profile-cover">
-          <div className="modern-cover-photo">
-            {/* Gradient background instead of image for now */}
+          <div
+            className="modern-cover-photo"
+            onMouseDown={handleCoverMouseDown}
+            onMouseMove={handleCoverMouseMove}
+            onMouseUp={handleCoverMouseUp}
+            onMouseLeave={handleCoverMouseUp}
+            style={{
+              backgroundImage: profile.coverImage
+                ? `url(${profile.coverImage})`
+                : undefined,
+              backgroundPosition: profile.coverImage
+                ? `${coverPosition.x}px ${coverPosition.y}px`
+                : "center",
+              backgroundSize: "cover",
+              backgroundRepeat: "no-repeat",
+              cursor: coverDragging
+                ? "grabbing"
+                : isOwnProfile && profile.coverImage
+                ? "grab"
+                : "default",
+            }}
+          >
+            {!profile.coverImage && (
+              <div className="modern-cover-placeholder">
+                <div className="modern-cover-gradient"></div>
+              </div>
+            )}
+
+            {/* Three Dot Menu for Cover Photo */}
+            {isOwnProfile && (
+              <div className="modern-cover-menu">
+                <button
+                  className="modern-cover-menu-btn"
+                  onClick={() => setShowCoverMenu(!showCoverMenu)}
+                >
+                  ⋮
+                </button>
+                {showCoverMenu && (
+                  <div className="modern-cover-dropdown">
+                    <label className="modern-cover-option">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleCoverImageUpload(file);
+                        }}
+                        disabled={uploading}
+                        style={{ display: "none" }}
+                      />
+                      {uploading ? "⏳ Uploading..." : "📷 Upload Cover"}
+                    </label>
+                    {profile.coverImage && (
+                      <button
+                        className="modern-cover-option modern-cover-remove"
+                        onClick={async () => {
+                          try {
+                            setUploading(true);
+                            await api.put("/auth/cover-image", {
+                              coverImage: null,
+                              coverImagePosition: null,
+                            });
+                            setProfile((prev) =>
+                              prev ? { ...prev, coverImage: null } : null
+                            );
+                            setCoverPosition({ x: 0, y: 0 });
+                            showToast({
+                              message: "Cover image removed successfully",
+                              type: "success",
+                            });
+                            setShowCoverMenu(false);
+                          } catch (error: any) {
+                            const message =
+                              error.message || "Failed to remove cover image";
+                            setError(message);
+                            showToast({ message, type: "error" });
+                          } finally {
+                            setUploading(false);
+                          }
+                        }}
+                      >
+                        🗑️ Remove Cover
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Profile Info Overlay */}
@@ -945,6 +1288,72 @@ const ProfilePage: React.FC = () => {
                       </button>
                     </div>
                   </form>
+                </div>
+
+                {/* Delete Account Section */}
+                <div className="modern-settings-card modern-danger-card">
+                  <h3 className="modern-section-title modern-danger-title">
+                    Delete Account
+                  </h3>
+                  <p className="modern-danger-text">
+                    <strong>⚠️ Warning:</strong> This action will permanently delete your account and all associated data including posts, comments, likes, and relationships. This cannot be undone.
+                  </p>
+
+                  {!showDeleteConfirm ? (
+                    <div className="modern-danger-initial">
+                      <button
+                        type="button"
+                        className="modern-btn modern-btn-danger"
+                        onClick={() => setShowDeleteConfirm(true)}
+                      >
+                        🗑️ Delete My Account
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="modern-delete-confirm">
+                      <div className="modern-form-group">
+                        <label
+                          htmlFor="deletePassword"
+                          className="modern-label"
+                        >
+                          🔒 Confirm your password to proceed
+                        </label>
+                        <input
+                          type="password"
+                          id="deletePassword"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          className="modern-input"
+                          placeholder="Enter your current password"
+                          disabled={deleteLoading}
+                          autoFocus
+                        />
+                      </div>
+                      <div className="modern-delete-actions">
+                        <button
+                          type="button"
+                          className="modern-btn modern-btn-ghost"
+                          onClick={() => {
+                            setShowDeleteConfirm(false);
+                            setDeletePassword("");
+                          }}
+                          disabled={deleteLoading}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="modern-btn modern-btn-danger"
+                          onClick={handleDeleteAccount}
+                          disabled={deleteLoading || !deletePassword.trim()}
+                        >
+                          {deleteLoading
+                            ? "⏳ Deleting..."
+                            : "💀 Permanently Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -47,12 +47,15 @@ export async function getUserById(req: Request, res: Response) {
   }
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await (prisma as any).user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         username: true,
         bio: true,
+        profilePicture: true,
+        coverImage: true,
+        coverImagePosition: true,
         createdAt: true,
       },
     });
@@ -79,7 +82,9 @@ export async function getUserById(req: Request, res: Response) {
       id: user.id,
       username: user.username,
       bio: user.bio,
-      profilePicture: null, // TODO: Add after Prisma regeneration
+      profilePicture: user.profilePicture,
+      coverImage: user.coverImage,
+      coverImagePosition: user.coverImagePosition,
       createdAt: user.createdAt,
       postsCount: postsCount,
       friendsCount: 0, // TODO: Implement proper friend counting

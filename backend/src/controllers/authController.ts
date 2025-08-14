@@ -37,6 +37,13 @@ export async function register(req: Request, res: Response) {
     const user = await prisma.user.create({
       data: { username, email, password: hashedPassword },
     });
+    // Issue auth cookie on successful registration
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    res.cookie("token", token, { httpOnly: true, sameSite: "lax", path: "/" });
     return res.status(201).json(getSafeUser(user));
   } catch (err: any) {
     console.error("Registration error:", err);
@@ -66,7 +73,7 @@ export async function login(req: Request, res: Response) {
       JWT_SECRET,
       { expiresIn: "7d" }
     );
-    res.cookie("token", token, { httpOnly: true, sameSite: "lax" });
+    res.cookie("token", token, { httpOnly: true, sameSite: "lax", path: "/" });
     return res.json(getSafeUser(user));
   } catch (err: any) {
     console.error("Login error:", err);
@@ -196,7 +203,7 @@ export async function updateProfilePicture(req: Request, res: Response) {
     const { profilePicture } = req.body;
 
     // Update user profile picture
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await (prisma as any).user.update({
       where: { id: payload.id },
       data: { profilePicture },
     });
@@ -205,5 +212,119 @@ export async function updateProfilePicture(req: Request, res: Response) {
   } catch (err: any) {
     console.error("Profile picture update error:", err);
     return res.status(400).json({ error: "Profile picture update failed" });
+  }
+}
+
+export async function updateCoverImage(req: Request, res: Response) {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as { id: number };
+    const { coverImage, coverImagePosition } = req.body;
+
+    // Update user cover image
+    const updatedUser = await (prisma as any).user.update({
+      where: { id: payload.id },
+      data: {
+        coverImage,
+        coverImagePosition: coverImagePosition || null,
+      },
+    });
+
+    return res.json(getSafeUser(updatedUser));
+  } catch (err: any) {
+    console.error("Cover image update error:", err);
+    return res.status(400).json({ error: "Cover image update failed" });
+  }
+}
+
+export async function deleteAccount(req: Request, res: Response) {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as { id: number };
+    const { password } = req.body;
+
+    if (!password) {
+      return res
+        .status(400)
+        .json({ error: "Password is required to delete account" });
+    }
+
+    // Verify current password
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ error: "Invalid password" });
+    }
+
+    // Delete user and all related data (cascade delete)
+    // Prisma will handle the cascade deletion based on the schema relationships
+    await prisma.$transaction(async (tx) => {
+      // Delete user's notifications (both received and triggered)
+      await tx.notification.deleteMany({
+        where: {
+          OR: [{ userId: payload.id }, { triggeredBy: payload.id }],
+        },
+      });
+
+      // Delete user's follows (both as follower and following)
+      await tx.follow.deleteMany({
+        where: {
+          OR: [{ followerId: payload.id }, { followingId: payload.id }],
+        },
+      });
+
+      // Delete user's friendships
+      await tx.friendship.deleteMany({
+        where: {
+          OR: [{ userA: payload.id }, { userB: payload.id }],
+        },
+      });
+
+      // Delete user's friend requests
+      await tx.friendRequest.deleteMany({
+        where: {
+          OR: [{ fromId: payload.id }, { toId: payload.id }],
+        },
+      });
+
+      // Delete user's comments
+      await tx.comment.deleteMany({
+        where: { userId: payload.id },
+      });
+
+      // Delete user's likes
+      await tx.like.deleteMany({
+        where: { userId: payload.id },
+      });
+
+      // Delete user's posts (this will also delete related likes, comments, and notifications)
+      await tx.post.deleteMany({
+        where: { authorId: payload.id },
+      });
+
+      // Finally, delete the user
+      await tx.user.delete({
+        where: { id: payload.id },
+      });
+    });
+
+    // Clear the authentication cookie
+    res.clearCookie("token", { httpOnly: true, sameSite: "lax", path: "/" });
+
+    return res.json({ message: "Account deleted successfully" });
+  } catch (err: any) {
+    console.error("Account deletion error:", err);
+    return res.status(500).json({ error: "Account deletion failed" });
   }
 }

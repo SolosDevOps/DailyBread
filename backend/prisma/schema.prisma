@@ -9,11 +9,16 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  username  String   @unique
+  username  String   @unique 
   email     String   @unique
   password  String
+  // OAuth provider IDs (optional)
+  googleId  String?  @unique
+  facebookId String? @unique
   bio       String?
   profilePicture String?
+  coverImage String?
+  coverImagePosition String? // JSON string like "{x: 0, y: 0}" for positioning
   createdAt DateTime @default(now())
   posts     Post[]
   likes     Like[]

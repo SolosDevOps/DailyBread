@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { api } from "../lib/api";
+import { api, baseURL } from "../lib/api";
 
 // ---- Types ----
 export interface AuthUser {
@@ -50,10 +50,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const refresh = useCallback(async () => {
     try {
       setError(null);
-      const me = await api.get<AuthUser>("/auth/me");
-      setUser(me);
-    } catch (e) {
-      setUser(null); // not authenticated
+      const res = await fetch(`${baseURL.replace(/\/$/, "")}/auth/me`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const me: AuthUser = await res.json();
+        setUser(me);
+      } else if (res.status === 401) {
+        setUser(null);
+      } else {
+        // Other errors: capture message but avoid throwing to keep console clean
+        try {
+          const data = await res.json();
+          setError((data && (data.error || data.message)) || "Request failed");
+        } catch {
+          setError(res.statusText || "Request failed");
+        }
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
     } finally {
       setLoading(false);
     }

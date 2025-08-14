@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../lib/api";
 import "../styles/Login.css";
 
 const Login: React.FC = () => {
@@ -9,6 +10,52 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [providers, setProviders] = useState<{
+    google: boolean;
+    facebook: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    let aborted = false;
+    api
+      .get<{ google: boolean; facebook: boolean }>("/auth/oauth/providers")
+      .then((res) => {
+        if (!aborted) setProviders(res);
+      })
+      .catch(() => {
+        if (!aborted) setProviders({ google: false, facebook: false });
+      });
+    return () => {
+      aborted = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err) {
+      switch (err) {
+        case "google_disabled":
+          setError("Google sign-in is not configured on the server.");
+          break;
+        case "facebook_disabled":
+          setError("Facebook sign-in is not configured on the server.");
+          break;
+        case "google_failed":
+          setError("Google sign-in failed. Please try again.");
+          break;
+        case "facebook_failed":
+          setError("Facebook sign-in failed. Please try again.");
+          break;
+        default:
+          setError("Social sign-in error. Please try again.");
+      }
+      // Clean the query string
+      const url = new URL(window.location.href);
+      url.searchParams.delete("error");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
@@ -40,9 +87,47 @@ const Login: React.FC = () => {
             <h2 className="login-form-title">Sign in to Account</h2>
 
             <div className="login-social-buttons">
-              <button className="login-social-btn">f</button>
-              <button className="login-social-btn">G+</button>
-              <button className="login-social-btn">in</button>
+              <button
+                type="button"
+                className="login-social-btn"
+                disabled={providers ? !providers.facebook : true}
+                onClick={() => {
+                  if (!providers?.facebook) {
+                    setError("Facebook sign-in is not available.");
+                    return;
+                  }
+                  const url =
+                    (import.meta as any).env?.VITE_API_URL ||
+                    "http://localhost:4001/api";
+                  window.location.href = `${url}/auth/oauth/facebook`;
+                }}
+                title="Continue with Facebook"
+                aria-label="Continue with Facebook"
+              >
+                f
+              </button>
+              <button
+                type="button"
+                className="login-social-btn"
+                disabled={providers ? !providers.google : true}
+                onClick={() => {
+                  if (!providers?.google) {
+                    setError("Google sign-in is not available.");
+                    return;
+                  }
+                  const url =
+                    (import.meta as any).env?.VITE_API_URL ||
+                    "http://localhost:4001/api";
+                  window.location.href = `${url}/auth/oauth/google`;
+                }}
+                title="Continue with Google"
+                aria-label="Continue with Google"
+              >
+                G+
+              </button>
+              <button className="login-social-btn" disabled title="Coming soon">
+                in
+              </button>
             </div>
 
             <p className="login-form-subtitle">or use your email account:</p>

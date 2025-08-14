@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../lib/api";
 import "../styles/Register.css";
 
 const Register: React.FC = () => {
@@ -10,6 +11,25 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [providers, setProviders] = useState<{
+    google: boolean;
+    facebook: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    let aborted = false;
+    api
+      .get<{ google: boolean; facebook: boolean }>("/auth/oauth/providers")
+      .then((res) => {
+        if (!aborted) setProviders(res);
+      })
+      .catch(() => {
+        if (!aborted) setProviders({ google: false, facebook: false });
+      });
+    return () => {
+      aborted = true;
+    };
+  }, []);
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
@@ -54,9 +74,51 @@ const Register: React.FC = () => {
             <h2 className="register-form-title">Create Account</h2>
 
             <div className="register-social-buttons">
-              <button className="register-social-btn">f</button>
-              <button className="register-social-btn">G+</button>
-              <button className="register-social-btn">in</button>
+              <button
+                type="button"
+                className="register-social-btn"
+                disabled={providers ? !providers.facebook : true}
+                onClick={() => {
+                  if (!providers?.facebook) {
+                    setError("Facebook sign-in is not available.");
+                    return;
+                  }
+                  const url =
+                    (import.meta as any).env?.VITE_API_URL ||
+                    "http://localhost:4001/api";
+                  window.location.href = `${url}/auth/oauth/facebook`;
+                }}
+                title="Continue with Facebook"
+                aria-label="Continue with Facebook"
+              >
+                f
+              </button>
+              <button
+                type="button"
+                className="register-social-btn"
+                disabled={providers ? !providers.google : true}
+                onClick={() => {
+                  if (!providers?.google) {
+                    setError("Google sign-in is not available.");
+                    return;
+                  }
+                  const url =
+                    (import.meta as any).env?.VITE_API_URL ||
+                    "http://localhost:4001/api";
+                  window.location.href = `${url}/auth/oauth/google`;
+                }}
+                title="Continue with Google"
+                aria-label="Continue with Google"
+              >
+                G+
+              </button>
+              <button
+                className="register-social-btn"
+                disabled
+                title="Coming soon"
+              >
+                in
+              </button>
             </div>
 
             <p className="register-form-subtitle">

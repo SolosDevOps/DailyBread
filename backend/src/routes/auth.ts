@@ -7,6 +7,8 @@ import {
   updateProfile,
   updatePassword,
   updateProfilePicture,
+  updateCoverImage,
+  deleteAccount,
 } from "../controllers/authController";
 
 const router = Router();
@@ -18,5 +20,7 @@ router.post("/logout", logout);
 router.put("/profile", updateProfile);
 router.put("/password", updatePassword);
 router.put("/profile-picture", updateProfilePicture);
+router.put("/cover-image", updateCoverImage);
+router.delete("/account", deleteAccount);
 
 export default router;
