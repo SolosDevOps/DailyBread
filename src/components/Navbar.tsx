@@ -225,23 +225,54 @@ const Navbar: React.FC<NavbarProps> = () => {
 
   // Load recent searches from localStorage on component mount
   useEffect(() => {
-    const saved = localStorage.getItem("recentSearches");
+    if (!user?.id) {
+      setRecentSearches([]);
+      return;
+    }
+
+    const userSpecificKey = `recentSearches_${user.id}`;
+    const saved = localStorage.getItem(userSpecificKey);
     if (saved) {
       try {
         setRecentSearches(JSON.parse(saved));
       } catch (e) {
         console.error("Failed to parse recent searches:", e);
+        setRecentSearches([]);
       }
+    } else {
+      setRecentSearches([]);
+    }
+  }, [user?.id]); // Re-run when user changes
+
+  // Clean up old global recent searches data (migration)
+  useEffect(() => {
+    const oldGlobalKey = "recentSearches";
+    if (localStorage.getItem(oldGlobalKey)) {
+      localStorage.removeItem(oldGlobalKey);
+      console.log("Cleaned up old global recent searches data for security");
     }
   }, []);
 
+  // Clear recent searches when user logs out (when user becomes null)
+  useEffect(() => {
+    if (!user) {
+      setRecentSearches([]);
+    }
+  }, [user]);
+
   // Handle user click - add to recent searches and navigate
-  const handleUserClick = (user: UserResult) => {
-    // Add to recent searches (avoid duplicates)
+  const handleUserClick = (searchUser: UserResult) => {
+    if (!user?.id || !searchUser) return;
+
+    // Add to recent searches (avoid duplicates) - user-specific
     setRecentSearches((prev) => {
-      const filtered = prev.filter((u) => u.id !== user.id);
-      const updated = [user, ...filtered].slice(0, 5); // Keep only 5 recent searches
-      localStorage.setItem("recentSearches", JSON.stringify(updated));
+      const filtered = prev.filter((u) => u.id !== searchUser.id);
+      const updated = [searchUser, ...filtered].slice(0, 5); // Keep only 5 recent searches
+      
+      // Save to user-specific localStorage key
+      const userSpecificKey = `recentSearches_${user.id}`;
+      localStorage.setItem(userSpecificKey, JSON.stringify(updated));
+      
       return updated;
     });
 
@@ -250,7 +281,7 @@ const Navbar: React.FC<NavbarProps> = () => {
     setOpen(false);
 
     // Navigate to user profile
-    navigate(`/profile/${user.id}`);
+    navigate(`/profile/${searchUser.id}`);
   };
 
   useEffect(() => {

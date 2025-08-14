@@ -8,12 +8,66 @@ const Login: React.FC = () => {
   const { user, login } = useAuth();
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [providers, setProviders] = useState<{
     google: boolean;
     facebook: boolean;
   } | null>(null);
+
+  // Remember Me functionality
+  const REMEMBER_ME_KEY = "dailybread_remember_me";
+  const REMEMBER_ME_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+
+  const saveCredentials = (email: string, password: string) => {
+    const credentials = {
+      email,
+      password,
+      timestamp: Date.now(),
+      expiresAt: Date.now() + REMEMBER_ME_EXPIRY,
+    };
+    localStorage.setItem(REMEMBER_ME_KEY, JSON.stringify(credentials));
+  };
+
+  const loadSavedCredentials = () => {
+    const saved = localStorage.getItem(REMEMBER_ME_KEY);
+    if (!saved) return null;
+
+    try {
+      const credentials = JSON.parse(saved);
+
+      // Check if credentials have expired
+      if (Date.now() > credentials.expiresAt) {
+        localStorage.removeItem(REMEMBER_ME_KEY);
+        return null;
+      }
+
+      return credentials;
+    } catch {
+      localStorage.removeItem(REMEMBER_ME_KEY);
+      return null;
+    }
+  };
+
+  const clearSavedCredentials = () => {
+    localStorage.removeItem(REMEMBER_ME_KEY);
+  };
+
+  // Utility function to check for expired credentials globally
+  const checkAndCleanExpiredCredentials = () => {
+    const saved = localStorage.getItem(REMEMBER_ME_KEY);
+    if (!saved) return;
+
+    try {
+      const credentials = JSON.parse(saved);
+      if (Date.now() > credentials.expiresAt) {
+        localStorage.removeItem(REMEMBER_ME_KEY);
+      }
+    } catch {
+      localStorage.removeItem(REMEMBER_ME_KEY);
+    }
+  };
 
   useEffect(() => {
     let aborted = false;
@@ -28,6 +82,20 @@ const Login: React.FC = () => {
     return () => {
       aborted = true;
     };
+  }, []);
+
+  // Load saved credentials on component mount
+  useEffect(() => {
+    // First clean any expired credentials
+    checkAndCleanExpiredCredentials();
+
+    // Then load valid credentials
+    const saved = loadSavedCredentials();
+    if (saved) {
+      setEmailOrUsername(saved.email);
+      setPassword(saved.password);
+      setRememberMe(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -71,6 +139,13 @@ const Login: React.FC = () => {
     setSubmitting(true);
     try {
       await login(emailOrUsername, password);
+
+      // Save or clear credentials based on remember me checkbox
+      if (rememberMe) {
+        saveCredentials(emailOrUsername, password);
+      } else {
+        clearSavedCredentials();
+      }
     } catch (e: any) {
       setError(e?.message || "Login failed");
     } finally {
@@ -150,10 +225,34 @@ const Login: React.FC = () => {
                 placeholder="Password"
                 className="login-input"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  // If user manually clears password, uncheck remember me for security
+                  if (e.target.value === "" && rememberMe) {
+                    setRememberMe(false);
+                    clearSavedCredentials();
+                  }
+                }}
                 autoComplete="current-password"
                 required
               />
+
+              <div className="remember-me-container">
+                <label className="remember-me-label">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="remember-me-checkbox"
+                  />
+                  <span className="remember-me-text">
+                    Remember me for 30 days
+                  </span>
+                </label>
+                <Link to="/forgot-password" className="forgot-password-link">
+                  Forgot Password?
+                </Link>
+              </div>
 
               <button
                 type="submit"

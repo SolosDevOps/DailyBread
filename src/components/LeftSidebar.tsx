@@ -114,6 +114,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed = false }) => {
       id: "feed",
       label: "Feed",
       icon: "🏠",
+      href: "/dashboard",
       isActive: activeSection === "feed",
     },
     {
@@ -141,6 +142,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed = false }) => {
       id: "study",
       label: "Bible Study",
       icon: "📖",
+      href: "/dashboard",
       isActive: activeSection === "study",
     },
     {
@@ -202,6 +204,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ collapsed = false }) => {
                   <Link
                     to={item.href}
                     className={`nav-link ${item.isActive ? "active" : ""}`}
+                    onClick={() => setActiveSection(item.id)}
                   >
                     <span className="nav-icon">{item.icon}</span>
                     <span className="nav-label">{item.label}</span>

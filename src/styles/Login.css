@@ -105,6 +105,49 @@
 	color: #999;
 }
 
+/* Remember Me Section */
+.remember-me-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 1rem;
+	margin-bottom: 0.5rem;
+}
+
+.remember-me-label {
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	font-size: 0.875rem;
+	color: #666;
+	user-select: none;
+}
+
+.remember-me-checkbox {
+	margin-right: 0.5rem;
+	width: 16px;
+	height: 16px;
+	accent-color: #667eea;
+	cursor: pointer;
+}
+
+.remember-me-text {
+	font-size: 0.875rem;
+	color: #666;
+}
+
+.forgot-password-link {
+	font-size: 0.875rem;
+	color: #667eea;
+	text-decoration: none;
+	transition: color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+	color: #764ba2;
+	text-decoration: underline;
+}
+
 .login-button {
 	width: 100%;
 	cursor: pointer;
@@ -216,5 +259,15 @@
 
 	.login-form-title {
 		font-size: 1.75rem;
+	}
+
+	.remember-me-container {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+
+	.forgot-password-link {
+		align-self: flex-end;
 	}
 }

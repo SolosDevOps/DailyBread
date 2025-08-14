@@ -16,15 +16,15 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <SidebarProvider>
-          <ToastProvider>
-            <FeedProvider>
-              <BrowserRouter
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true,
-                }}
-              >
+        <ToastProvider>
+          <FeedProvider>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
+              <SidebarProvider>
                 <Routes>
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
@@ -33,10 +33,10 @@ const App: React.FC = () => {
                   <Route path="/profile/:id" element={<ProfilePage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-              </BrowserRouter>
-            </FeedProvider>
-          </ToastProvider>
-        </SidebarProvider>
+              </SidebarProvider>
+            </BrowserRouter>
+          </FeedProvider>
+        </ToastProvider>
       </NotificationProvider>
     </AuthProvider>
   );
