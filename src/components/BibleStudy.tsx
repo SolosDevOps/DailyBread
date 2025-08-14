@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { api } from "../lib/api";
 import { useToast } from "../context/ToastContext";
 import "../styles/BibleStudy.css";
@@ -234,12 +234,53 @@ const BibleStudy: React.FC = () => {
     verse: number;
   } | null>(null);
 
+  // Scroll management for navigation UX
+  const [showFloatingNav, setShowFloatingNav] = useState(false);
+  const chapterContentRef = useRef<HTMLDivElement>(null);
+  const versesContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     loadChapter(currentBook, currentChapter, currentVersion);
     loadBookmarks();
     loadHighlights();
     loadReadingPlan();
+
+    // Auto-scroll to top when chapter changes
+    if (chapterContentRef.current) {
+      chapterContentRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
   }, [currentBook, currentChapter, currentVersion]);
+
+  // Scroll effect to show/hide floating navigation
+  useEffect(() => {
+    const handleScroll = () => {
+      if (versesContainerRef.current && chapterContentRef.current) {
+        const versesContainer = versesContainerRef.current;
+        const chapterContent = chapterContentRef.current;
+
+        const versesRect = versesContainer.getBoundingClientRect();
+        const chapterRect = chapterContent.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        // Show floating nav when:
+        // 1. Chapter header is scrolled past top
+        // 2. Still have verses content visible
+        // 3. Not at the very bottom (bottom nav will show)
+        const shouldShowFloatingNav =
+          chapterRect.top < -50 &&
+          versesRect.bottom > windowHeight * 0.3 &&
+          versesRect.top < windowHeight * 0.7;
+
+        setShowFloatingNav(shouldShowFloatingNav);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const loadChapter = async (
     book: string,
@@ -485,8 +526,64 @@ const BibleStudy: React.FC = () => {
     }
   };
 
+  // Reusable navigation component
+  const ChapterNavigation = ({
+    className = "",
+    compact = false,
+  }: {
+    className?: string;
+    compact?: boolean;
+  }) => (
+    <div className={`chapter-navigation ${className}`}>
+      <button
+        className={`nav-btn ${compact ? "compact" : ""}`}
+        onClick={() => navigateChapter("prev")}
+        disabled={currentBook === "Genesis" && currentChapter === 1}
+        title="Previous Chapter"
+      >
+        {compact ? "←" : "← Previous"}
+      </button>
+
+      <div className={`current-reference ${compact ? "compact" : ""}`}>
+        <span className="book-name">{currentBook}</span>
+        <span className="chapter-number">{currentChapter}</span>
+      </div>
+
+      <button
+        className={`nav-btn ${compact ? "compact" : ""}`}
+        onClick={() => navigateChapter("next")}
+        disabled={currentBook === "Revelation" && currentChapter === 22}
+        title="Next Chapter"
+      >
+        {compact ? "→" : "Next →"}
+      </button>
+
+      {compact && (
+        <button
+          className="scroll-to-top-btn"
+          onClick={() =>
+            chapterContentRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            })
+          }
+          title="Scroll to Top"
+        >
+          ↑
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="bible-study-container">
+      {/* Floating Navigation */}
+      {showFloatingNav && activeTab === "read" && (
+        <div className="floating-navigation">
+          <ChapterNavigation className="floating-nav-content" compact={true} />
+        </div>
+      )}
+
       {/* Header */}
       <div className="bible-header">
         <div className="bible-title">
@@ -657,7 +754,7 @@ const BibleStudy: React.FC = () => {
           </div>
 
           {/* Chapter Content */}
-          <div className="chapter-content">
+          <div className="chapter-content" ref={chapterContentRef}>
             <div className="chapter-header">
               <h2>
                 {currentBook} {currentChapter}
@@ -678,7 +775,7 @@ const BibleStudy: React.FC = () => {
                 <p>Loading chapter...</p>
               </div>
             ) : (
-              <div className="verses-container">
+              <div className="verses-container" ref={versesContainerRef}>
                 {verses.length === 0 && !loading && (
                   <div className="no-verses">
                     No verses found. Click navigation to load chapter.
@@ -773,6 +870,13 @@ const BibleStudy: React.FC = () => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Bottom Navigation */}
+            {verses.length > 0 && (
+              <div className="bottom-navigation">
+                <ChapterNavigation className="bottom-nav-content" />
               </div>
             )}
           </div>

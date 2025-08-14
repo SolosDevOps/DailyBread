@@ -43,7 +43,7 @@ interface ProfileFormData {
 
 const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { user: currentUser, refresh } = useAuth();
+  const { user: currentUser, refresh, loggingOut } = useAuth();
   const { sidebarCollapsed } = useSidebar();
   const { refreshFeed } = useFeed();
   const { showToast } = useToast();
@@ -673,7 +673,7 @@ const ProfilePage: React.FC = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (!currentUser) {
+  if (!currentUser && !loggingOut) {
     return <Navigate to="/login" replace />;
   }
 

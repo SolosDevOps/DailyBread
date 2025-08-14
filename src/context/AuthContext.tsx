@@ -20,6 +20,7 @@ export interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
+  loggingOut: boolean;
   error: string | null;
   login: (emailOrUsername: string, password: string) => Promise<void>; // backend expects username; we accept email/username
   register: (
@@ -45,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loggingOut, setLoggingOut] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -125,21 +127,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = useCallback(async () => {
     setLoading(true);
+    setLoggingOut(true);
     setError(null);
     try {
       await api.post("/auth/logout");
       setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      // Use window.location.href for logout redirect
+      window.location.href = "/";
     } catch (e) {
       setError(extractError(e));
       throw e;
     } finally {
       setLoading(false);
+      setLoggingOut(false);
     }
   }, []);
 
   const value: AuthContextValue = {
     user,
     loading,
+    loggingOut,
     error,
     login,
     register,

@@ -1166,7 +1166,7 @@ const FriendsActivity: React.FC = () => {
 };
 
 const Dashboard: React.FC = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, loggingOut } = useAuth();
   const { sidebarCollapsed, activeSection } = useSidebar();
 
   useEffect(() => {
@@ -1174,7 +1174,7 @@ const Dashboard: React.FC = () => {
     return () => document.body.classList.remove("sidebar-collapsed");
   }, [sidebarCollapsed]);
 
-  if (authLoading) {
+  if (authLoading || loggingOut) {
     return <div>Loading...</div>;
   }
 

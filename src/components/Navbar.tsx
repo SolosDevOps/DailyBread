@@ -309,9 +309,11 @@ const Navbar: React.FC<NavbarProps> = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/", { replace: true });
+      // Logout function handles the redirect to "/" via window.location.href
     } catch (error) {
       console.error("Logout failed:", error);
+      // Fallback redirect if logout fails
+      navigate("/", { replace: true });
     }
   };
 
