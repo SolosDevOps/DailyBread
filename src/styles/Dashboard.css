@@ -550,11 +550,62 @@
 	margin: 0;
 }
 
+/* Read more/less functionality */
+.db-post-body-collapsed {
+	max-height: 5.4em;
+	/* About 3.6 lines */
+	overflow: hidden;
+	position: relative;
+}
+
+.db-post-body-collapsed::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 100%;
+	height: 1.5em;
+	background: linear-gradient(transparent, var(--fb-surface));
+	pointer-events: none;
+}
+
+.db-read-more {
+	color: var(--fb-text-secondary);
+	font-size: 14px;
+	font-weight: 500;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 2px 0;
+	margin-top: 4px;
+	transition: color 0.2s ease;
+	display: inline-block;
+}
+
+.db-read-more:hover {
+	color: var(--fb-text);
+	text-decoration: underline;
+}
+
+.db-read-more:focus {
+	outline: none;
+	color: var(--fb-text);
+}
+
 /* Mobile optimization for post body */
 @media (max-width: 768px) {
 	.db-post-body {
 		font-size: 15px;
 		line-height: 1.6;
+	}
+
+	.db-post-body-collapsed {
+		max-height: 5.76em;
+		/* Adjusted for mobile line height */
+	}
+
+	.db-read-more {
+		font-size: 13px;
 	}
 }
 
@@ -562,6 +613,15 @@
 	.db-post-body {
 		font-size: 14px;
 		line-height: 1.6;
+	}
+
+	.db-post-body-collapsed {
+		max-height: 5.76em;
+		/* Adjusted for smaller mobile line height */
+	}
+
+	.db-read-more {
+		font-size: 12px;
 	}
 }
 
@@ -2407,5 +2467,185 @@
 		width: 100%;
 		justify-content: center;
 		padding: 16px;
+	}
+}
+
+/* ===== BIBLE VERSE HIGHLIGHTING & POPUP ===== */
+
+/* Bible Verse Reference Highlighting in Posts */
+.bible-verse-reference {
+	background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+	color: white;
+	padding: 2px 6px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 0.9em;
+	transition: all 0.2s ease;
+	display: inline-block;
+	text-decoration: none;
+	border: 1px solid rgba(79, 70, 229, 0.3);
+	box-shadow: 0 1px 3px rgba(79, 70, 229, 0.2);
+}
+
+.bible-verse-reference:hover {
+	background: linear-gradient(135deg, #3730a3 0%, #6b21a8 100%);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+}
+
+.bible-verse-reference:active {
+	transform: translateY(0);
+}
+
+/* Bible Verse Popup Overlay */
+.verse-popup-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+
+/* Bible Verse Popup */
+.verse-popup {
+	background: var(--fb-surface);
+	border-radius: var(--fb-radius-lg);
+	box-shadow: var(--fb-shadow-lg);
+	max-width: 500px;
+	width: 100%;
+	max-height: 80vh;
+	overflow: auto;
+	animation: popupSlideIn 0.2s ease;
+}
+
+@keyframes popupSlideIn {
+	from {
+		opacity: 0;
+		transform: scale(0.9) translateY(-20px);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+/* Popup Header */
+.verse-popup-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 24px 16px;
+	border-bottom: 1px solid var(--fb-border-light);
+}
+
+.verse-popup-header h4 {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--fb-text);
+}
+
+.verse-popup-close {
+	background: none;
+	border: none;
+	font-size: 24px;
+	color: var(--fb-text-secondary);
+	cursor: pointer;
+	padding: 4px;
+	border-radius: 50%;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.2s ease;
+}
+
+.verse-popup-close:hover {
+	background: var(--fb-hover);
+}
+
+/* Popup Content */
+.verse-popup-content {
+	padding: 20px 24px;
+}
+
+.verse-loading,
+.verse-error {
+	text-align: center;
+	padding: 20px;
+	color: var(--fb-text-secondary);
+}
+
+.verse-text p {
+	font-size: 1.1rem;
+	line-height: 1.6;
+	color: var(--fb-text);
+	margin: 0 0 12px 0;
+	font-style: italic;
+}
+
+.verse-reference {
+	font-size: 0.9rem;
+	color: var(--fb-text-secondary);
+	font-weight: 600;
+}
+
+/* Popup Actions */
+.verse-popup-actions {
+	padding: 16px 24px 20px;
+	border-top: 1px solid var(--fb-border-light);
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+}
+
+.verse-bookmark-btn {
+	background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+	color: white;
+	border: none;
+	padding: 10px 16px;
+	border-radius: var(--fb-radius);
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.verse-bookmark-btn:hover {
+	background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+	transform: translateY(-1px);
+}
+
+.verse-bookmark-btn:active {
+	transform: translateY(0);
+}
+
+/* Mobile Responsive */
+@media (max-width: 767px) {
+	.verse-popup {
+		margin: 10px;
+		max-height: 90vh;
+	}
+
+	.verse-popup-header,
+	.verse-popup-content,
+	.verse-popup-actions {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	.verse-text p {
+		font-size: 1rem;
 	}
 }

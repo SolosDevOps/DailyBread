@@ -148,13 +148,33 @@ const BIBLE_BOOKS: BibleBook[] = [
   { name: "Revelation", abbreviation: "Rev", chapters: 22, testament: "new" },
 ];
 
-const BIBLE_VERSIONS = [
-  { id: "niv", name: "New International Version", abbreviation: "NIV" },
-  { id: "esv", name: "English Standard Version", abbreviation: "ESV" },
-  { id: "nlt", name: "New Living Translation", abbreviation: "NLT" },
-  { id: "kjv", name: "King James Version", abbreviation: "KJV" },
-  { id: "nasb", name: "New American Standard Bible", abbreviation: "NASB" },
+const BIBLE_LANGUAGES = [
+  { id: "en", name: "English", flag: "🇺🇸" },
+  { id: "bg", name: "Bulgarian", flag: "🇧🇬" },
 ];
+
+const BIBLE_VERSIONS_BY_LANGUAGE = {
+  en: [
+    { id: "niv", name: "New International Version", abbreviation: "NIV" },
+    { id: "esv", name: "English Standard Version", abbreviation: "ESV" },
+    { id: "nlt", name: "New Living Translation", abbreviation: "NLT" },
+    { id: "kjv", name: "King James Version", abbreviation: "KJV" },
+    { id: "nasb", name: "New American Standard Bible", abbreviation: "NASB" },
+    { id: "web", name: "World English Bible", abbreviation: "WEB" },
+    { id: "asv", name: "American Standard Version", abbreviation: "ASV" },
+    { id: "ylt", name: "Young's Literal Translation", abbreviation: "YLT" },
+    { id: "darby", name: "Darby Translation", abbreviation: "DARBY" },
+  ],
+  bg: [
+    { id: "vbg", name: "Bulgarian Bible (Veren)", abbreviation: "Верен" },
+    { id: "bgp", name: "Bulgarian Popular Bible", abbreviation: "Популярна" },
+    {
+      id: "bgo",
+      name: "Bulgarian Orthodox Bible",
+      abbreviation: "Православна",
+    },
+  ],
+};
 
 const READING_PLANS: ReadingPlan[] = [
   {
@@ -194,6 +214,294 @@ const READING_PLANS: ReadingPlan[] = [
   },
 ];
 
+// Translation constants for Bible Study interface
+const TRANSLATIONS = {
+  en: {
+    title: "Bible Study",
+    subtitle: "Study God's Word with modern tools",
+    tabs: {
+      read: "📚 Read",
+      plans: "📅 Plans",
+      bookmarks: "🔖 Bookmarks",
+      search: "🔍 Search",
+      discussion: "💬 Discussion",
+    },
+    navigation: {
+      book: "Book",
+      chapter: "Chapter",
+      verse: "Verse",
+      version: "Version",
+      previousChapter: "Previous Chapter",
+      nextChapter: "Next Chapter",
+      chapters: "Chapters",
+    },
+    actions: {
+      bookmark: "Bookmark",
+      highlight: "Highlight",
+      share: "Share",
+      note: "Note",
+      search: "Search",
+      reset: "Reset",
+      save: "Save",
+      cancel: "Cancel",
+    },
+    placeholders: {
+      searchBible: "Search the Bible...",
+      searchBooks: "Search books...",
+      addNote: "Add a note...",
+      searchVerses: "Search for verses, keywords, or references...",
+      searchBooksDetail: "Search for books (e.g., Genesis, Romans, Psalms...)",
+    },
+    messages: {
+      loading: "Loading...",
+      noResults: "No results found",
+      selectBook: "Select a book to start reading",
+      bookmarkSaved: "Bookmark saved!",
+      noteSaved: "Note saved!",
+      error: "An error occurred",
+      loadingChapter: "Loading chapter...",
+      searchResults: "Search Results",
+      noSearchResults: "No results found for your search",
+      selectBookToStart: "Select a book to start reading",
+    },
+    testament: {
+      old: "Old Testament",
+      new: "New Testament",
+    },
+    books: {
+      // Old Testament
+      Genesis: "Genesis",
+      Exodus: "Exodus",
+      Leviticus: "Leviticus",
+      Numbers: "Numbers",
+      Deuteronomy: "Deuteronomy",
+      Joshua: "Joshua",
+      Judges: "Judges",
+      Ruth: "Ruth",
+      "1 Samuel": "1 Samuel",
+      "2 Samuel": "2 Samuel",
+      "1 Kings": "1 Kings",
+      "2 Kings": "2 Kings",
+      "1 Chronicles": "1 Chronicles",
+      "2 Chronicles": "2 Chronicles",
+      Ezra: "Ezra",
+      Nehemiah: "Nehemiah",
+      Esther: "Esther",
+      Job: "Job",
+      Psalms: "Psalms",
+      Proverbs: "Proverbs",
+      Ecclesiastes: "Ecclesiastes",
+      "Song of Solomon": "Song of Solomon",
+      Isaiah: "Isaiah",
+      Jeremiah: "Jeremiah",
+      Lamentations: "Lamentations",
+      Ezekiel: "Ezekiel",
+      Daniel: "Daniel",
+      Hosea: "Hosea",
+      Joel: "Joel",
+      Amos: "Amos",
+      Obadiah: "Obadiah",
+      Jonah: "Jonah",
+      Micah: "Micah",
+      Nahum: "Nahum",
+      Habakkuk: "Habakkuk",
+      Zephaniah: "Zephaniah",
+      Haggai: "Haggai",
+      Zechariah: "Zechariah",
+      Malachi: "Malachi",
+      // New Testament
+      Matthew: "Matthew",
+      Mark: "Mark",
+      Luke: "Luke",
+      John: "John",
+      Acts: "Acts",
+      Romans: "Romans",
+      "1 Corinthians": "1 Corinthians",
+      "2 Corinthians": "2 Corinthians",
+      Galatians: "Galatians",
+      Ephesians: "Ephesians",
+      Philippians: "Philippians",
+      Colossians: "Colossians",
+      "1 Thessalonians": "1 Thessalonians",
+      "2 Thessalonians": "2 Thessalonians",
+      "1 Timothy": "1 Timothy",
+      "2 Timothy": "2 Timothy",
+      Titus: "Titus",
+      Philemon: "Philemon",
+      Hebrews: "Hebrews",
+      James: "James",
+      "1 Peter": "1 Peter",
+      "2 Peter": "2 Peter",
+      "1 John": "1 John",
+      "2 John": "2 John",
+      "3 John": "3 John",
+      Jude: "Jude",
+      Revelation: "Revelation",
+    },
+    ui: {
+      close: "Close",
+      select: "Select",
+      all: "All",
+      filter: "Filter",
+      clear: "Clear",
+      back: "Back",
+      next: "Next",
+      previous: "Previous",
+      continue: "Continue",
+      done: "Done",
+      edit: "Edit",
+      delete: "Delete",
+      add: "Add",
+      remove: "Remove",
+      view: "View",
+      hide: "Hide",
+      show: "Show",
+    },
+  },
+  bg: {
+    title: "Библейско изучаване",
+    subtitle: "Изучавайте Божието слово с модерни инструменти",
+    tabs: {
+      read: "📚 Четене",
+      plans: "📅 Планове",
+      bookmarks: "🔖 Запазени",
+      search: "🔍 Търсене",
+      discussion: "💬 Дискусия",
+    },
+    navigation: {
+      book: "Книга",
+      chapter: "Глава",
+      verse: "Стих",
+      version: "Версия",
+      previousChapter: "Предишна глава",
+      nextChapter: "Следваща глава",
+      chapters: "Глави",
+    },
+    actions: {
+      bookmark: "Отметка",
+      highlight: "Маркиране",
+      share: "Споделяне",
+      note: "Бележка",
+      search: "Търсене",
+      reset: "Нулиране",
+      save: "Запазване",
+      cancel: "Отказ",
+    },
+    placeholders: {
+      searchBible: "Търсене в Библията...",
+      searchBooks: "Търсене на книги...",
+      addNote: "Добавете бележка...",
+      searchVerses: "Търсене на стихове, ключови думи или препратки...",
+      searchBooksDetail: "Търсене на книги (напр., Битие, Римляни, Псалми...)",
+    },
+    messages: {
+      loading: "Зареждане...",
+      noResults: "Няма намерени резултати",
+      selectBook: "Изберете книга, за да започнете четене",
+      bookmarkSaved: "Отметката е запазена!",
+      noteSaved: "Бележката е запазена!",
+      error: "Възникна грешка",
+      loadingChapter: "Зареждане на глава...",
+      searchResults: "Резултати от търсенето",
+      noSearchResults: "Няма резултати за вашето търсене",
+      selectBookToStart: "Изберете книга за да започнете четенето",
+    },
+    testament: {
+      old: "Стар завет",
+      new: "Нов завет",
+    },
+    books: {
+      // Old Testament
+      Genesis: "Битие",
+      Exodus: "Изход",
+      Leviticus: "Левит",
+      Numbers: "Числа",
+      Deuteronomy: "Второзаконие",
+      Joshua: "Исус Навиев",
+      Judges: "Съдии",
+      Ruth: "Рут",
+      "1 Samuel": "1 Царе",
+      "2 Samuel": "2 Царе",
+      "1 Kings": "3 Царе",
+      "2 Kings": "4 Царе",
+      "1 Chronicles": "1 Летописи",
+      "2 Chronicles": "2 Летописи",
+      Ezra: "Ездра",
+      Nehemiah: "Неемия",
+      Esther: "Естир",
+      Job: "Йов",
+      Psalms: "Псалми",
+      Proverbs: "Притчи",
+      Ecclesiastes: "Еклесиаст",
+      "Song of Solomon": "Песен на песните",
+      Isaiah: "Исая",
+      Jeremiah: "Йеремия",
+      Lamentations: "Плач",
+      Ezekiel: "Йезекиил",
+      Daniel: "Данаил",
+      Hosea: "Осия",
+      Joel: "Йоил",
+      Amos: "Амос",
+      Obadiah: "Авдий",
+      Jonah: "Йона",
+      Micah: "Михей",
+      Nahum: "Наум",
+      Habakkuk: "Авакум",
+      Zephaniah: "Софония",
+      Haggai: "Агей",
+      Zechariah: "Захария",
+      Malachi: "Малахия",
+      // New Testament
+      Matthew: "Матей",
+      Mark: "Марк",
+      Luke: "Лука",
+      John: "Йоан",
+      Acts: "Деяния",
+      Romans: "Римляни",
+      "1 Corinthians": "1 Коринтяни",
+      "2 Corinthians": "2 Коринтяни",
+      Galatians: "Галатяни",
+      Ephesians: "Ефесяни",
+      Philippians: "Филипяни",
+      Colossians: "Колосяни",
+      "1 Thessalonians": "1 Солуняни",
+      "2 Thessalonians": "2 Солуняни",
+      "1 Timothy": "1 Тимотей",
+      "2 Timothy": "2 Тимотей",
+      Titus: "Тит",
+      Philemon: "Филимон",
+      Hebrews: "Евреи",
+      James: "Яков",
+      "1 Peter": "1 Петър",
+      "2 Peter": "2 Петър",
+      "1 John": "1 Йоан",
+      "2 John": "2 Йоан",
+      "3 John": "3 Йоан",
+      Jude: "Юда",
+      Revelation: "Откровение",
+    },
+    ui: {
+      close: "Затвори",
+      select: "Избери",
+      all: "Всички",
+      filter: "Филтър",
+      clear: "Изчисти",
+      back: "Назад",
+      next: "Напред",
+      previous: "Назад",
+      continue: "Продължи",
+      done: "Готово",
+      edit: "Редактирай",
+      delete: "Изтрий",
+      add: "Добави",
+      remove: "Премахни",
+      view: "Виж",
+      hide: "Скрий",
+      show: "Покажи",
+    },
+  },
+};
+
 const BibleStudy: React.FC = () => {
   const { showToast } = useToast();
 
@@ -203,6 +511,7 @@ const BibleStudy: React.FC = () => {
   >("read");
   const [currentBook, setCurrentBook] = useState<string>("Genesis");
   const [currentChapter, setCurrentChapter] = useState<number>(1);
+  const [currentLanguage, setCurrentLanguage] = useState<string>("en");
   const [currentVersion, setCurrentVersion] = useState<string>("niv");
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -240,6 +549,9 @@ const BibleStudy: React.FC = () => {
   const [showFullscreenBookSearch, setShowFullscreenBookSearch] =
     useState(false);
 
+  // Book search state for dropdown selector
+  const [dropdownBookSearchQuery, setDropdownBookSearchQuery] = useState("");
+
   // Mobile tabs menu state
   const [showMobileTabsMenu, setShowMobileTabsMenu] = useState(false);
 
@@ -257,6 +569,50 @@ const BibleStudy: React.FC = () => {
   // Refs for click-outside functionality
   const bookSelectorRef = useRef<HTMLDivElement>(null);
   const chapterSelectorRef = useRef<HTMLDivElement>(null);
+
+  // Get available versions for current language
+  const getAvailableVersions = () => {
+    return (
+      BIBLE_VERSIONS_BY_LANGUAGE[
+        currentLanguage as keyof typeof BIBLE_VERSIONS_BY_LANGUAGE
+      ] || BIBLE_VERSIONS_BY_LANGUAGE.en
+    );
+  };
+
+  // Handle language change
+  const handleLanguageChange = (newLanguage: string) => {
+    setCurrentLanguage(newLanguage);
+    const availableVersions =
+      BIBLE_VERSIONS_BY_LANGUAGE[
+        newLanguage as keyof typeof BIBLE_VERSIONS_BY_LANGUAGE
+      ];
+    if (availableVersions && availableVersions.length > 0) {
+      setCurrentVersion(availableVersions[0].id);
+    }
+  };
+
+  // Get translations for current language
+  const t = (key: string): string => {
+    const keys = key.split(".");
+    let value: any =
+      TRANSLATIONS[currentLanguage as keyof typeof TRANSLATIONS] ||
+      TRANSLATIONS.en;
+    for (const k of keys) {
+      value = value[k];
+      if (!value) break;
+    }
+    return typeof value === "string" ? value : key;
+  };
+
+  // Get translated book name
+  const getBookName = (bookName: string): string => {
+    return t(`books.${bookName}`) || bookName;
+  };
+
+  // Get translated testament name
+  const getTestamentName = (testament: "old" | "new"): string => {
+    return t(`testament.${testament}`);
+  };
 
   useEffect(() => {
     loadChapter(currentBook, currentChapter, currentVersion);
@@ -485,6 +841,7 @@ const BibleStudy: React.FC = () => {
         verses: BibleVerse[];
         version: string;
         translation?: string;
+        language?: string;
       };
       const data = await api.get<ChapterResponse>("/bible/chapter", {
         query: { book, chapter, version },
@@ -660,13 +1017,38 @@ const BibleStudy: React.FC = () => {
   // Helper to detect mobile screens
   const isMobile = () => window.innerWidth <= 768;
 
-  // Filter books based on search query
+  // Filter books based on search query (for fullscreen modal)
   const getFilteredBooks = () => {
     if (!bookSearchQuery.trim()) return BIBLE_BOOKS;
     return BIBLE_BOOKS.filter(
       (book) =>
         book.name.toLowerCase().includes(bookSearchQuery.toLowerCase()) ||
-        book.abbreviation.toLowerCase().includes(bookSearchQuery.toLowerCase())
+        book.abbreviation
+          .toLowerCase()
+          .includes(bookSearchQuery.toLowerCase()) ||
+        getBookName(book.name)
+          .toLowerCase()
+          .includes(bookSearchQuery.toLowerCase())
+    );
+  };
+
+  // Filter books for dropdown selector
+  const getFilteredBooksForDropdown = (testament: "old" | "new") => {
+    const testamentBooks = BIBLE_BOOKS.filter(
+      (book) => book.testament === testament
+    );
+    if (!dropdownBookSearchQuery.trim()) return testamentBooks;
+    return testamentBooks.filter(
+      (book) =>
+        book.name
+          .toLowerCase()
+          .includes(dropdownBookSearchQuery.toLowerCase()) ||
+        book.abbreviation
+          .toLowerCase()
+          .includes(dropdownBookSearchQuery.toLowerCase()) ||
+        getBookName(book.name)
+          .toLowerCase()
+          .includes(dropdownBookSearchQuery.toLowerCase())
     );
   };
 
@@ -714,12 +1096,13 @@ const BibleStudy: React.FC = () => {
     setCurrentChapter(chapter);
     setActiveTab("read");
 
-    // Wait for the chapter to load and DOM to update
-    setTimeout(() => {
+    // Function to scroll to verse with retry mechanism
+    const scrollToVerse = (attempts = 0, maxAttempts = 10) => {
       // Find the specific verse element
       const verseElement = document.querySelector(
         `[data-verse="${verseNumber}"]`
       );
+
       if (verseElement) {
         // Scroll to the verse
         verseElement.scrollIntoView({
@@ -743,8 +1126,36 @@ const BibleStudy: React.FC = () => {
           verseDiv.style.padding = "";
           verseDiv.style.margin = "";
         }, 3000);
+
+        return true; // Success
+      } else if (attempts < maxAttempts) {
+        // Verse not found, try again after a short delay
+        setTimeout(() => {
+          scrollToVerse(attempts + 1, maxAttempts);
+        }, 300);
+        return false; // Still trying
+      } else {
+        // Max attempts reached, verse not found
+        console.warn(
+          `Could not find verse ${verseNumber} in ${book} ${chapter}`
+        );
+        return false; // Failed
       }
-    }, 500); // Wait for chapter content to load
+    };
+
+    // Wait for loading to finish, then scroll to verse
+    const waitForLoadingAndScroll = () => {
+      if (loading) {
+        // Still loading, check again in 100ms
+        setTimeout(waitForLoadingAndScroll, 100);
+      } else {
+        // Loading finished, now try to scroll to verse
+        setTimeout(() => scrollToVerse(), 100);
+      }
+    };
+
+    // Start the process
+    waitForLoadingAndScroll();
   };
 
   const removeBookmarkById = async (id: number) => {
@@ -805,13 +1216,13 @@ const BibleStudy: React.FC = () => {
         className={`nav-btn ${compact ? "compact" : ""}`}
         onClick={() => navigateChapter("prev")}
         disabled={currentBook === "Genesis" && currentChapter === 1}
-        title="Previous Chapter"
+        title={t("navigation.previousChapter")}
       >
-        {compact ? "←" : "← Previous"}
+        {compact ? "←" : `← ${t("navigation.previousChapter").split(" ")[0]}`}
       </button>
 
       <div className={`current-reference ${compact ? "compact" : ""}`}>
-        <span className="book-name">{currentBook}</span>
+        <span className="book-name">{getBookName(currentBook)}</span>
         <span className="chapter-number">{currentChapter}</span>
       </div>
 
@@ -819,9 +1230,9 @@ const BibleStudy: React.FC = () => {
         className={`nav-btn ${compact ? "compact" : ""}`}
         onClick={() => navigateChapter("next")}
         disabled={currentBook === "Revelation" && currentChapter === 22}
-        title="Next Chapter"
+        title={t("navigation.nextChapter")}
       >
-        {compact ? "→" : "Next →"}
+        {compact ? "→" : `${t("navigation.nextChapter").split(" ")[0]} →`}
       </button>
 
       {compact && (
@@ -876,9 +1287,24 @@ const BibleStudy: React.FC = () => {
 
       {/* Header */}
       <div className="bible-header">
+        {/* Language Selector - Top Right */}
+        <div className="bible-language-selector">
+          <select
+            className="language-select-header"
+            value={currentLanguage}
+            onChange={(e) => handleLanguageChange(e.target.value)}
+          >
+            {BIBLE_LANGUAGES.map((language) => (
+              <option key={language.id} value={language.id}>
+                {language.flag} {language.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="bible-title">
-          <h1>📖 Bible Study</h1>
-          <p>Study God's Word with modern tools</p>
+          <h1>📖 {t("title")}</h1>
+          <p>{t("subtitle")}</p>
         </div>
 
         <div className="bible-nav-tabs">
@@ -886,31 +1312,31 @@ const BibleStudy: React.FC = () => {
             className={`tab-btn ${activeTab === "read" ? "active" : ""}`}
             onClick={() => setActiveTab("read")}
           >
-            📚 Read
+            {t("tabs.read")}
           </button>
           <button
             className={`tab-btn ${activeTab === "plans" ? "active" : ""}`}
             onClick={() => setActiveTab("plans")}
           >
-            📅 Plans
+            {t("tabs.plans")}
           </button>
           <button
             className={`tab-btn ${activeTab === "bookmarks" ? "active" : ""}`}
             onClick={() => setActiveTab("bookmarks")}
           >
-            🔖 Bookmarks
+            {t("tabs.bookmarks")}
           </button>
           <button
             className={`tab-btn ${activeTab === "search" ? "active" : ""}`}
             onClick={() => setActiveTab("search")}
           >
-            🔍 Search
+            {t("tabs.search")}
           </button>
           <button
             className={`tab-btn ${activeTab === "discussion" ? "active" : ""}`}
             onClick={() => setActiveTab("discussion")}
           >
-            💬 Discussion
+            {t("tabs.discussion")}
           </button>
         </div>
 
@@ -996,7 +1422,7 @@ const BibleStudy: React.FC = () => {
             <div className="nav-primary">
               <div className="nav-location">
                 <div className="current-reference">
-                  <span className="book-name">{currentBook}</span>
+                  <span className="book-name">{getBookName(currentBook)}</span>
                   <span className="chapter-number">{currentChapter}</span>
                 </div>
                 <div className="nav-arrows">
@@ -1037,14 +1463,14 @@ const BibleStudy: React.FC = () => {
                   }}
                 >
                   <span>📄</span>
-                  <span>Chapters</span>
+                  <span>{t("navigation.chapters")}</span>
                 </button>
                 <select
                   className="version-select"
                   value={currentVersion}
                   onChange={(e) => setCurrentVersion(e.target.value)}
                 >
-                  {BIBLE_VERSIONS.map((version) => (
+                  {getAvailableVersions().map((version) => (
                     <option key={version.id} value={version.id}>
                       {version.abbreviation}
                     </option>
@@ -1094,10 +1520,24 @@ const BibleStudy: React.FC = () => {
                   <h3>Select a Book</h3>
                   <button
                     className="close-selector"
-                    onClick={() => setShowBookSelector(false)}
+                    onClick={() => {
+                      setShowBookSelector(false);
+                      setDropdownBookSearchQuery("");
+                    }}
                   >
                     ×
                   </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="book-search-container">
+                  <input
+                    type="text"
+                    className="book-search-input"
+                    placeholder={t("placeholders.searchBooks")}
+                    value={dropdownBookSearchQuery}
+                    onChange={(e) => setDropdownBookSearchQuery(e.target.value)}
+                  />
                 </div>
 
                 <div className="testament-tabs">
@@ -1107,7 +1547,8 @@ const BibleStudy: React.FC = () => {
                     }`}
                     onClick={() => setActiveTestament("old")}
                   >
-                    Old Testament (39)
+                    {getTestamentName("old")} (
+                    {getFilteredBooksForDropdown("old").length})
                   </button>
                   <button
                     className={`testament-tab ${
@@ -1115,14 +1556,13 @@ const BibleStudy: React.FC = () => {
                     }`}
                     onClick={() => setActiveTestament("new")}
                   >
-                    New Testament (27)
+                    {getTestamentName("new")} (
+                    {getFilteredBooksForDropdown("new").length})
                   </button>
                 </div>
 
                 <div className="books-list">
-                  {BIBLE_BOOKS.filter(
-                    (book) => book.testament === activeTestament
-                  ).map((book) => (
+                  {getFilteredBooksForDropdown(activeTestament).map((book) => (
                     <button
                       key={book.name}
                       className={`book-item ${
@@ -1132,9 +1572,12 @@ const BibleStudy: React.FC = () => {
                         setCurrentBook(book.name);
                         setCurrentChapter(1);
                         setShowBookSelector(false);
+                        setDropdownBookSearchQuery("");
                       }}
                     >
-                      <span className="book-name">{book.name}</span>
+                      <span className="book-name">
+                        {getBookName(book.name)}
+                      </span>
                       <span className="book-info">
                         {book.chapters} chapters
                       </span>
@@ -1187,12 +1630,12 @@ const BibleStudy: React.FC = () => {
           <div className="chapter-content" ref={chapterContentRef}>
             <div className="chapter-header">
               <h2>
-                {currentBook} {currentChapter}
+                {getBookName(currentBook)} {currentChapter}
               </h2>
               <div className="chapter-meta">
                 <span className="version-indicator">
                   {
-                    BIBLE_VERSIONS.find((v) => v.id === currentVersion)
+                    getAvailableVersions().find((v) => v.id === currentVersion)
                       ?.abbreviation
                   }
                 </span>
@@ -1202,7 +1645,7 @@ const BibleStudy: React.FC = () => {
             {loading ? (
               <div className="loading-state">
                 <div className="loading-spinner"></div>
-                <p>Loading chapter...</p>
+                <p>{t("messages.loading")}</p>
               </div>
             ) : (
               <div className="verses-container" ref={versesContainerRef}>
@@ -1458,7 +1901,7 @@ const BibleStudy: React.FC = () => {
                 <input
                   type="text"
                   className="search-input"
-                  placeholder="Search for verses, keywords, or references..."
+                  placeholder={t("placeholders.searchBible")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) =>
@@ -1477,15 +1920,15 @@ const BibleStudy: React.FC = () => {
               <div className="search-filters">
                 <select className="filter-select">
                   <option value="all">All Books</option>
-                  <option value="old">Old Testament</option>
-                  <option value="new">New Testament</option>
+                  <option value="old">{getTestamentName("old")}</option>
+                  <option value="new">{getTestamentName("new")}</option>
                 </select>
                 <select
                   className="filter-select"
                   value={currentVersion}
                   onChange={(e) => setCurrentVersion(e.target.value)}
                 >
-                  {BIBLE_VERSIONS.map((version) => (
+                  {getAvailableVersions().map((version) => (
                     <option key={version.id} value={version.id}>
                       {version.abbreviation}
                     </option>
@@ -1594,7 +2037,7 @@ const BibleStudy: React.FC = () => {
             <div className="note-modal-body">
               <textarea
                 className="note-textarea"
-                placeholder="Add your personal note or reflection..."
+                placeholder={t("placeholders.addNote")}
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
                 rows={4}
@@ -1657,7 +2100,7 @@ const BibleStudy: React.FC = () => {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search for books (e.g., Genesis, Romans, Psalms...)"
+                  placeholder={t("placeholders.searchBooksDetail")}
                   value={bookSearchQuery}
                   onChange={(e) => setBookSearchQuery(e.target.value)}
                   className="book-search-input"
@@ -1708,7 +2151,7 @@ const BibleStudy: React.FC = () => {
             {!bookSearchQuery.trim() && (
               <div className="search-suggestions">
                 <div className="suggestion-section">
-                  <h3>📖 Old Testament</h3>
+                  <h3>📖 {getTestamentName("old")}</h3>
                   <div className="suggestion-books">
                     {BIBLE_BOOKS.filter((book) => book.testament === "old")
                       .slice(0, 8)
@@ -1718,7 +2161,9 @@ const BibleStudy: React.FC = () => {
                           className="suggestion-book"
                           onClick={() => selectBookFromSearch(book.name)}
                         >
-                          <span className="book-name">{book.name}</span>
+                          <span className="book-name">
+                            {getBookName(book.name)}
+                          </span>
                           <span className="book-chapters">
                             {book.chapters} chapters
                           </span>
@@ -1728,7 +2173,7 @@ const BibleStudy: React.FC = () => {
                 </div>
 
                 <div className="suggestion-section">
-                  <h3>✝️ New Testament</h3>
+                  <h3>✝️ {getTestamentName("new")}</h3>
                   <div className="suggestion-books">
                     {BIBLE_BOOKS.filter((book) => book.testament === "new")
                       .slice(0, 8)
@@ -1738,7 +2183,9 @@ const BibleStudy: React.FC = () => {
                           className="suggestion-book"
                           onClick={() => selectBookFromSearch(book.name)}
                         >
-                          <span className="book-name">{book.name}</span>
+                          <span className="book-name">
+                            {getBookName(book.name)}
+                          </span>
                           <span className="book-chapters">
                             {book.chapters} chapters
                           </span>
@@ -1768,12 +2215,14 @@ const BibleStudy: React.FC = () => {
                         onClick={() => selectBookFromSearch(book.name)}
                       >
                         <div className="book-info">
-                          <span className="book-name">{book.name}</span>
+                          <span className="book-name">
+                            {getBookName(book.name)}
+                          </span>
                           <span className="book-details">
                             {book.abbreviation} • {book.chapters} chapters •{" "}
                             {book.testament === "old"
-                              ? "Old Testament"
-                              : "New Testament"}
+                              ? getTestamentName("old")
+                              : getTestamentName("new")}
                           </span>
                         </div>
                         <div className="book-arrow">

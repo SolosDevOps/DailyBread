@@ -49,6 +49,183 @@ interface Post {
   };
 }
 
+// Bible verse interfaces
+interface BibleVerse {
+  book: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  // Add support for multiple verses
+  verses?: Array<{
+    book: string;
+    chapter: number;
+    verse: number;
+    text: string;
+  }>;
+}
+
+interface VerseReference {
+  book: string;
+  chapter: number;
+  verse?: number;
+  endVerse?: number;
+  originalText: string;
+  startIndex: number;
+  endIndex: number;
+  // optional version hint (e.g., 'vbg' for Bulgarian)
+  version?: string;
+}
+
+// Bible books with abbreviations
+const BIBLE_BOOKS = [
+  { name: "Genesis", abbreviations: ["Gen", "Ge", "Gn"] },
+  { name: "Exodus", abbreviations: ["Exo", "Ex"] },
+  { name: "Leviticus", abbreviations: ["Lev", "Le", "Lv"] },
+  { name: "Numbers", abbreviations: ["Num", "Nu", "Nm", "Nb"] },
+  { name: "Deuteronomy", abbreviations: ["Deu", "De", "Dt"] },
+  { name: "Joshua", abbreviations: ["Jos", "Jsh"] },
+  { name: "Judges", abbreviations: ["Jdg", "Jg", "Jgs"] },
+  { name: "Ruth", abbreviations: ["Rth", "Ru"] },
+  { name: "1 Samuel", abbreviations: ["1Sa", "1 Sam", "1Sam", "1 Sm", "1Sm"] },
+  { name: "2 Samuel", abbreviations: ["2Sa", "2 Sam", "2Sam", "2 Sm", "2Sm"] },
+  { name: "1 Kings", abbreviations: ["1Ki", "1 Kin", "1Kin", "1 Kgs", "1Kgs"] },
+  { name: "2 Kings", abbreviations: ["2Ki", "2 Kin", "2Kin", "2 Kgs", "2Kgs"] },
+  {
+    name: "1 Chronicles",
+    abbreviations: ["1Ch", "1 Chr", "1Chr", "1 Chron", "1Chron"],
+  },
+  {
+    name: "2 Chronicles",
+    abbreviations: ["2Ch", "2 Chr", "2Chr", "2 Chron", "2Chron"],
+  },
+  { name: "Ezra", abbreviations: ["Ezr", "Ez"] },
+  { name: "Nehemiah", abbreviations: ["Neh", "Ne"] },
+  { name: "Esther", abbreviations: ["Est", "Es"] },
+  { name: "Job", abbreviations: ["Jb"] },
+  { name: "Psalms", abbreviations: ["Psa", "Ps", "Psalm"] },
+  { name: "Proverbs", abbreviations: ["Pro", "Pr", "Prv"] },
+  { name: "Ecclesiastes", abbreviations: ["Ecc", "Ec", "Eccl"] },
+  { name: "Song of Solomon", abbreviations: ["Son", "So", "SoS", "Song"] },
+  { name: "Isaiah", abbreviations: ["Isa", "Is"] },
+  { name: "Jeremiah", abbreviations: ["Jer", "Je", "Jr"] },
+  { name: "Lamentations", abbreviations: ["Lam", "La"] },
+  { name: "Ezekiel", abbreviations: ["Eze", "Ezk", "Ez"] },
+  { name: "Daniel", abbreviations: ["Dan", "Da", "Dn"] },
+  { name: "Hosea", abbreviations: ["Hos", "Ho"] },
+  { name: "Joel", abbreviations: ["Joe", "Jl"] },
+  { name: "Amos", abbreviations: ["Amo", "Am"] },
+  { name: "Obadiah", abbreviations: ["Oba", "Ob"] },
+  { name: "Jonah", abbreviations: ["Jon", "Jnh"] },
+  { name: "Micah", abbreviations: ["Mic", "Mi"] },
+  { name: "Nahum", abbreviations: ["Nah", "Na"] },
+  { name: "Habakkuk", abbreviations: ["Hab", "Hb"] },
+  { name: "Zephaniah", abbreviations: ["Zep", "Ze"] },
+  { name: "Haggai", abbreviations: ["Hag", "Hg"] },
+  { name: "Zechariah", abbreviations: ["Zec", "Zc"] },
+  { name: "Malachi", abbreviations: ["Mal", "Ml"] },
+  { name: "Matthew", abbreviations: ["Mat", "Mt"] },
+  { name: "Mark", abbreviations: ["Mar", "Mk", "Mr"] },
+  { name: "Luke", abbreviations: ["Luk", "Lk"] },
+  { name: "John", abbreviations: ["Joh", "Jn"] },
+  { name: "Acts", abbreviations: ["Act", "Ac"] },
+  { name: "Romans", abbreviations: ["Rom", "Ro", "Rm"] },
+  { name: "1 Corinthians", abbreviations: ["1Co", "1 Cor", "1Cor"] },
+  { name: "2 Corinthians", abbreviations: ["2Co", "2 Cor", "2Cor"] },
+  { name: "Galatians", abbreviations: ["Gal", "Ga"] },
+  { name: "Ephesians", abbreviations: ["Eph", "Ep"] },
+  { name: "Philippians", abbreviations: ["Phi", "Ph", "Php"] },
+  { name: "Colossians", abbreviations: ["Col", "Co"] },
+  { name: "1 Thessalonians", abbreviations: ["1Th", "1 Thess", "1Thess"] },
+  { name: "2 Thessalonians", abbreviations: ["2Th", "2 Thess", "2Thess"] },
+  { name: "1 Timothy", abbreviations: ["1Ti", "1 Tim", "1Tim"] },
+  { name: "2 Timothy", abbreviations: ["2Ti", "2 Tim", "2Tim"] },
+  { name: "Titus", abbreviations: ["Tit", "Ti"] },
+  { name: "Philemon", abbreviations: ["Phm", "Pm"] },
+  { name: "Hebrews", abbreviations: ["Heb", "He"] },
+  { name: "James", abbreviations: ["Jam", "Jas", "Jm"] },
+  { name: "1 Peter", abbreviations: ["1Pe", "1 Pet", "1Pet"] },
+  { name: "2 Peter", abbreviations: ["2Pe", "2 Pet", "2Pet"] },
+  { name: "1 John", abbreviations: ["1Jo", "1 Jn", "1Jn"] },
+  { name: "2 John", abbreviations: ["2Jo", "2 Jn", "2Jn"] },
+  { name: "3 John", abbreviations: ["3Jo", "3 Jn", "3Jn"] },
+  { name: "Jude", abbreviations: ["Jud", "Jd"] },
+  { name: "Revelation", abbreviations: ["Rev", "Re", "Rv"] },
+];
+
+// Bulgarian -> English book name mapping (full names and common synonyms)
+const BG_BOOK_MAP: Record<string, string> = {
+  // Стар завет
+  Битие: "Genesis",
+  Изход: "Exodus",
+  Левит: "Leviticus",
+  Числа: "Numbers",
+  Второзаконие: "Deuteronomy",
+  "Иисус Навин": "Joshua",
+  Съдии: "Judges",
+  Рут: "Ruth",
+  "1 Царе": "1 Samuel",
+  "2 Царе": "2 Samuel",
+  "3 Царе": "1 Kings",
+  "4 Царе": "2 Kings",
+  "1 Летописи": "1 Chronicles",
+  "2 Летописи": "2 Chronicles",
+  Ездра: "Ezra",
+  Неемия: "Nehemiah",
+  Естир: "Esther",
+  Йов: "Job",
+  Псалми: "Psalms",
+  Псалм: "Psalms",
+  Пс: "Psalms",
+  Притчи: "Proverbs",
+  Еклесиаст: "Ecclesiastes",
+  "Песен на песните": "Song of Solomon",
+  Исая: "Isaiah",
+  Йеремия: "Jeremiah",
+  "Плач Йеремиев": "Lamentations",
+  Йезекиил: "Ezekiel",
+  Данаил: "Daniel",
+  Осия: "Hosea",
+  Йоил: "Joel",
+  Амос: "Amos",
+  Авдий: "Obadiah",
+  Йона: "Jonah",
+  Михей: "Micah",
+  Наум: "Nahum",
+  Авакум: "Habakkuk",
+  Софоний: "Zephaniah",
+  Агей: "Haggai",
+  Захария: "Zechariah",
+  Малахия: "Malachi",
+  // Нов завет
+  Матей: "Matthew",
+  Марк: "Mark",
+  Лука: "Luke",
+  Йоан: "John",
+  Деяния: "Acts",
+  Римляни: "Romans",
+  "1 Коринтяни": "1 Corinthians",
+  "2 Коринтяни": "2 Corinthians",
+  Галатяни: "Galatians",
+  Ефесяни: "Ephesians",
+  Филипяни: "Philippians",
+  Колосяни: "Colossians",
+  "1 Солунци": "1 Thessalonians",
+  "2 Солунци": "2 Thessalonians",
+  "1 Тимотей": "1 Timothy",
+  "2 Тимотей": "2 Timothy",
+  Тит: "Titus",
+  Филимон: "Philemon",
+  Евреи: "Hebrews",
+  Яков: "James",
+  "1 Петър": "1 Peter",
+  "2 Петър": "2 Peter",
+  "1 Йоан": "1 John",
+  "2 Йоан": "2 John",
+  "3 Йоан": "3 John",
+  Юда: "Jude",
+  Откровение: "Revelation",
+};
+
 // Utility: relative time
 function timeAgo(iso: string) {
   const date = new Date(iso);
@@ -166,6 +343,227 @@ const PostsList: React.FC = () => {
     post: Post | null;
   }>({ isOpen: false, post: null });
 
+  // Read more/less state for posts
+  const [expandedPosts, setExpandedPosts] = useState<Set<number>>(new Set());
+  const [postsWithReadMore, setPostsWithReadMore] = useState<Set<number>>(
+    new Set()
+  );
+
+  // Bible verse detection functions
+  const detectBibleVerses = (text: string): VerseReference[] => {
+    const verses: VerseReference[] = [];
+
+    BIBLE_BOOKS.forEach((book) => {
+      const allNames = [book.name, ...book.abbreviations];
+
+      allNames.forEach((bookName) => {
+        const pattern = new RegExp(
+          `(${bookName.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+          )})\\s+(\\d+):(\\d+)(?:-(\\d+))?`,
+          "gi"
+        );
+
+        // Bulgarian book detection (full names and common short forms)
+        Object.keys(BG_BOOK_MAP).forEach((bgName) => {
+          const escaped = bgName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const pattern = new RegExp(
+            `(${escaped})\\s+(\\d+):(\\d+)(?:-(\\d+))?`,
+            "gi"
+          );
+
+          let match;
+          let attempts = 0;
+          while ((match = pattern.exec(text)) !== null && attempts < 10) {
+            attempts++;
+            const chapter = parseInt(match[2]);
+            const verse = parseInt(match[3]);
+            const endVerse = match[4] ? parseInt(match[4]) : undefined;
+
+            verses.push({
+              book: BG_BOOK_MAP[bgName],
+              chapter,
+              verse,
+              endVerse,
+              originalText: match[0],
+              startIndex: match.index || 0,
+              endIndex: (match.index || 0) + match[0].length,
+              version: "vbg",
+            });
+          }
+        });
+
+        let match;
+        let attempts = 0;
+        while ((match = pattern.exec(text)) !== null && attempts < 10) {
+          attempts++;
+
+          const chapter = parseInt(match[2]);
+          const verse = parseInt(match[3]);
+          const endVerse = match[4] ? parseInt(match[4]) : undefined;
+
+          verses.push({
+            book: book.name,
+            chapter,
+            verse,
+            endVerse,
+            originalText: match[0],
+            startIndex: match.index || 0,
+            endIndex: (match.index || 0) + match[0].length,
+          });
+        }
+      });
+    });
+
+    const uniqueVerses = verses
+      .filter(
+        (verse, index, arr) =>
+          arr.findIndex((v) => v.startIndex === verse.startIndex) === index
+      )
+      .sort((a, b) => a.startIndex - b.startIndex);
+
+    return uniqueVerses;
+  };
+
+  const renderContentWithVerses = (content: string) => {
+    const verses = detectBibleVerses(content);
+
+    if (verses.length === 0) {
+      return content;
+    }
+
+    const parts = [];
+    let lastIndex = 0;
+
+    verses.forEach((verse, index) => {
+      if (verse.startIndex > lastIndex) {
+        parts.push(content.slice(lastIndex, verse.startIndex));
+      }
+
+      parts.push(
+        <span
+          key={`verse-${index}`}
+          className="bible-verse-reference"
+          onClick={() => handleVerseClick(verse)}
+          title={`Click to view ${verse.originalText}`}
+          style={{ cursor: "pointer" }}
+        >
+          {verse.originalText}
+        </span>
+      );
+
+      lastIndex = verse.endIndex;
+    });
+
+    if (lastIndex < content.length) {
+      parts.push(content.slice(lastIndex));
+    }
+
+    return parts;
+  };
+
+  // Bible verse popup states
+  const [showVersePopup, setShowVersePopup] = useState(false);
+  const [selectedVerse, setSelectedVerse] = useState<VerseReference | null>(
+    null
+  );
+  const [verseData, setVerseData] = useState<BibleVerse | null>(null);
+  const [loadingVerse, setLoadingVerse] = useState(false);
+
+  const handleVerseClick = async (verse: VerseReference) => {
+    setSelectedVerse(verse);
+    setShowVersePopup(true);
+    setLoadingVerse(true);
+
+    try {
+      const response = await api.get<{
+        reference: string;
+        verses: Array<{
+          book: string;
+          chapter: number;
+          verse: number;
+          text: string;
+          version: string;
+        }>;
+        version: string;
+      }>(
+        `/bible/verse?book=${encodeURIComponent(verse.book)}&chapter=${
+          verse.chapter
+        }&verse=${verse.verse}${
+          verse.endVerse ? `&endVerse=${verse.endVerse}` : ""
+        }${
+          verse.version ? `&version=${encodeURIComponent(verse.version)}` : ""
+        }`
+      );
+
+      if (response.verses && response.verses.length > 0) {
+        if (response.verses.length === 1) {
+          // Single verse
+          const firstVerse = response.verses[0];
+          setVerseData({
+            book: firstVerse.book,
+            chapter: firstVerse.chapter,
+            verse: firstVerse.verse,
+            text: firstVerse.text,
+          });
+        } else {
+          // Multiple verses (verse range)
+          const firstVerse = response.verses[0];
+          setVerseData({
+            book: firstVerse.book,
+            chapter: firstVerse.chapter,
+            verse: firstVerse.verse,
+            text: response.verses
+              .map((v) => `${v.verse} ${v.text}`)
+              .join("\n\n"),
+            verses: response.verses, // Store all verses for reference
+          });
+        }
+      } else {
+        throw new Error("No verses found in response");
+      }
+    } catch (error) {
+      console.error("Failed to fetch verse:", error);
+      showToast({ message: "Failed to load verse", type: "error" });
+    } finally {
+      setLoadingVerse(false);
+    }
+  };
+
+  const closeVersePopup = () => {
+    setShowVersePopup(false);
+    setSelectedVerse(null);
+    setVerseData(null);
+  };
+
+  const bookmarkVerse = async () => {
+    if (!selectedVerse || !user || !verseData) return;
+
+    try {
+      await api.post("/bible/bookmarks", {
+        book: selectedVerse.book,
+        chapter: selectedVerse.chapter,
+        verse: selectedVerse.verse,
+        text: verseData.text,
+      });
+      showToast({ message: "Verse bookmarked!", type: "success" });
+      closeVersePopup();
+    } catch (error: any) {
+      console.error("Failed to bookmark verse:", error);
+
+      // Handle already bookmarked case
+      if (error.message === "Verse already bookmarked") {
+        showToast({
+          message: "This verse is already bookmarked!",
+          type: "warning",
+        });
+      } else {
+        showToast({ message: "Failed to bookmark verse", type: "error" });
+      }
+    }
+  };
+
   // Updated load: supports silent refresh and scroll preservation
   const load = useCallback(
     async (opts?: { silent?: boolean; preserveScroll?: boolean }) => {
@@ -197,6 +595,34 @@ const PostsList: React.FC = () => {
     },
     []
   );
+
+  // Read more/less helper functions
+  const togglePostExpanded = (postId: number) => {
+    setExpandedPosts((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  const checkIfPostNeedsReadMore = (content: string, postId: number) => {
+    // Simple character-based check - adjust threshold as needed
+    const threshold = 400; // Approximately 3-4 lines of text
+    if (content.length > threshold) {
+      setPostsWithReadMore((prev) => new Set(prev).add(postId));
+    }
+  };
+
+  // Check posts for read more when they load
+  useEffect(() => {
+    posts.forEach((post) => {
+      checkIfPostNeedsReadMore(post.content, post.id);
+    });
+  }, [posts]);
 
   const toggleLike = async (postId: number) => {
     if (likingPosts.has(postId)) return; // Prevent double-clicking
@@ -775,7 +1201,24 @@ const PostsList: React.FC = () => {
             ) : (
               <div className="db-post-content">
                 <h3 className="db-post-title">{post.title}</h3>
-                <p className="db-post-body">{post.content}</p>
+                <p
+                  className={`db-post-body ${
+                    !expandedPosts.has(post.id) &&
+                    postsWithReadMore.has(post.id)
+                      ? "db-post-body-collapsed"
+                      : ""
+                  }`}
+                >
+                  {renderContentWithVerses(post.content)}
+                </p>
+                {postsWithReadMore.has(post.id) && (
+                  <button
+                    className="db-read-more"
+                    onClick={() => togglePostExpanded(post.id)}
+                  >
+                    {expandedPosts.has(post.id) ? "Read less" : "Read more"}
+                  </button>
+                )}
               </div>
             )}
 
@@ -1041,6 +1484,67 @@ const PostsList: React.FC = () => {
             )}
           </article>
         ))
+      )}
+
+      {/* Bible Verse Popup */}
+      {showVersePopup && selectedVerse && (
+        <div className="verse-popup-overlay" onClick={closeVersePopup}>
+          <div className="verse-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="verse-popup-header">
+              <h4>
+                {selectedVerse.book} {selectedVerse.chapter}:
+                {selectedVerse.verse}
+                {selectedVerse.endVerse &&
+                selectedVerse.endVerse !== selectedVerse.verse
+                  ? `-${selectedVerse.endVerse}`
+                  : ""}
+              </h4>
+              <button className="verse-popup-close" onClick={closeVersePopup}>
+                ×
+              </button>
+            </div>
+
+            <div className="verse-popup-content">
+              {loadingVerse ? (
+                <div className="verse-loading">Loading verse...</div>
+              ) : verseData ? (
+                <div className="verse-text">
+                  {verseData.verses && verseData.verses.length > 1 ? (
+                    // Multiple verses - format each verse separately
+                    <div>
+                      {verseData.verses.map((v, index) => (
+                        <div key={index} style={{ marginBottom: "12px" }}>
+                          <strong>{v.verse}</strong> {v.text}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Single verse
+                    <p>"{verseData.text}"</p>
+                  )}
+                  <span className="verse-reference">
+                    — {verseData.book} {verseData.chapter}:
+                    {verseData.verses && verseData.verses.length > 1
+                      ? `${verseData.verses[0].verse}-${
+                          verseData.verses[verseData.verses.length - 1].verse
+                        }`
+                      : verseData.verse}
+                  </span>
+                </div>
+              ) : (
+                <div className="verse-error">Failed to load verse</div>
+              )}
+            </div>
+
+            {verseData && (
+              <div className="verse-popup-actions">
+                <button className="verse-bookmark-btn" onClick={bookmarkVerse}>
+                  🔖 Bookmark
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Share Modal */}
@@ -1320,6 +1824,47 @@ const PostsList: React.FC = () => {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bible Verse Popup */}
+      {showVersePopup && selectedVerse && (
+        <div className="verse-popup-overlay" onClick={closeVersePopup}>
+          <div className="verse-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="verse-popup-header">
+              <h4 className="verse-popup-title">
+                {selectedVerse.book} {selectedVerse.chapter}:
+                {selectedVerse.verse}
+                {selectedVerse.endVerse && `-${selectedVerse.endVerse}`}
+              </h4>
+              <button className="verse-popup-close" onClick={closeVersePopup}>
+                ×
+              </button>
+            </div>
+
+            <div className="verse-popup-content">
+              {loadingVerse ? (
+                <div className="verse-loading">Loading verse...</div>
+              ) : verseData ? (
+                <div className="verse-text">
+                  <p>"{verseData.text}"</p>
+                  <span className="verse-reference">
+                    — {verseData.book} {verseData.chapter}:{verseData.verse}
+                  </span>
+                </div>
+              ) : (
+                <div className="verse-error">Failed to load verse</div>
+              )}
+            </div>
+
+            {verseData && (
+              <div className="verse-popup-actions">
+                <button className="verse-bookmark-btn" onClick={bookmarkVerse}>
+                  🔖 Bookmark
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -11,12 +11,14 @@ import {
   getReadingPlan,
   startReadingPlan,
   getChapter,
+  getVerse,
 } from "../controllers/bibleController";
 
 const router = Router();
 
 // Public Bible content
 router.get("/chapter", getChapter);
+router.get("/verse", getVerse);
 
 // Bookmarks
 router.get("/bookmarks", getBookmarks);

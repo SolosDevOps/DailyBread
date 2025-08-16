@@ -93,6 +93,8 @@ body:has(.bible-study-container) .db-main {
 	margin-bottom: var(--bs-space-8);
 	box-shadow: var(--bs-shadow-sm);
 	position: relative;
+	display: flex;
+	flex-direction: column;
 }
 
 .bible-title {
@@ -386,6 +388,120 @@ body:has(.bible-study-container) .db-main {
 	color: var(--bs-gray-900);
 }
 
+.language-select {
+	background: rgba(255, 255, 255, 0.15);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	color: white;
+	padding: var(--bs-space-2) var(--bs-space-3);
+	border-radius: var(--bs-radius);
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+	min-width: 120px;
+}
+
+.language-select option {
+	background: var(--bs-surface);
+	color: var(--bs-gray-900);
+}
+
+/* Language Selector in Header */
+.bible-language-selector {
+	position: absolute;
+	top: var(--bs-space-4);
+	right: var(--bs-space-4);
+	display: flex;
+	align-items: center;
+	gap: var(--bs-space-2);
+}
+
+.language-select-header {
+	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+	border: 1px solid #2563eb !important;
+	color: rgb(0, 0, 0) !important;
+	padding: var(--bs-space-2) var(--bs-space-4);
+	border-radius: var(--bs-radius-lg);
+	font-size: 0.875rem;
+	font-weight: 600;
+	cursor: pointer;
+	min-width: 150px;
+	transition: all 0.2s ease;
+	box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+	background-position: right 0.75rem center;
+	background-repeat: no-repeat;
+	background-size: 1rem;
+	padding-right: 2.5rem;
+}
+
+.language-select-header:hover {
+	transform: translateY(-1px) !important;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+	background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
+}
+
+.language-select-header:focus {
+	outline: none !important;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3), 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+	transform: translateY(-1px) !important;
+}
+
+/* Active/Open dropdown state */
+.language-select-header:active {
+	transform: translateY(0px) !important;
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15) !important;
+	background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+}
+
+.language-select-header option {
+	background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%) !important;
+	color: #1e293b !important;
+	padding: 12px 16px !important;
+	font-weight: 600 !important;
+	font-size: 0.875rem !important;
+	border: none !important;
+	margin: 2px 0 !important;
+	border-radius: 8px !important;
+	transition: all 0.2s ease !important;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.language-select-header option:hover {
+	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+	color: white !important;
+	transform: scale(1.02) !important;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+.language-select-header option:checked,
+.language-select-header option:focus,
+.language-select-header option[selected] {
+	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+	color: white !important;
+	font-weight: 700 !important;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* Enhanced dropdown styling for better UX */
+.language-select-header::-webkit-scrollbar {
+	width: 8px;
+}
+
+.language-select-header::-webkit-scrollbar-track {
+	background: #f1f5f9;
+	border-radius: 4px;
+}
+
+.language-select-header::-webkit-scrollbar-thumb {
+	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+	border-radius: 4px;
+}
+
+.language-select-header::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
 /* Quick Chapter Navigation */
 .chapter-quick-nav {
 	padding: var(--bs-space-3) var(--bs-space-6);
@@ -496,6 +612,34 @@ body:has(.bible-study-container) .db-main {
 
 .close-selector:hover {
 	color: var(--bs-gray-700);
+}
+
+/* Book Search Container */
+.book-search-container {
+	padding: var(--bs-space-3) var(--bs-space-4);
+	background: var(--bs-surface);
+	border-bottom: 1px solid var(--bs-gray-200);
+}
+
+.book-search-input {
+	width: 100%;
+	padding: var(--bs-space-2) var(--bs-space-3);
+	border: 1px solid var(--bs-gray-300);
+	border-radius: var(--bs-radius);
+	font-size: 0.875rem;
+	background: var(--bs-surface);
+	color: var(--bs-gray-900);
+	transition: border-color 0.15s ease;
+}
+
+.book-search-input:focus {
+	outline: none;
+	border-color: var(--bs-primary);
+	box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.book-search-input::placeholder {
+	color: var(--bs-gray-500);
 }
 
 .testament-tabs {
@@ -742,11 +886,13 @@ body:has(.bible-study-container) .db-main {
 }
 
 .verse.highlighted {
-	background: rgba(251, 191, 36, 0.2);
+	background: rgba(139, 92, 246, 0.2);
 }
 
 .verse.bookmarked {
 	background: rgba(16, 185, 129, 0.1);
+	border-bottom: 2px solid rgba(16, 185, 129, 0.6);
+	position: relative;
 }
 
 /* Verse Number - Inline with text like traditional Bible */
@@ -883,6 +1029,27 @@ body:has(.bible-study-container) .db-main {
 
 /* Responsive Design - Mobile First */
 @media (max-width: 768px) {
+	.bible-header {
+		padding: var(--bs-space-6) var(--bs-space-4);
+	}
+
+	.bible-language-selector {
+		position: static;
+		margin-bottom: var(--bs-space-4);
+		justify-content: center;
+	}
+
+	.language-select-header {
+		min-width: 130px;
+		font-size: 0.8rem;
+		padding: var(--bs-space-2) var(--bs-space-3);
+		padding-right: 2rem;
+	}
+
+	.bible-title h1 {
+		font-size: 1.75rem;
+	}
+
 	.reader-controls {
 		flex-direction: column;
 		gap: var(--bs-space-3);
