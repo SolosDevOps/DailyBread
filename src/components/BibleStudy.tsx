@@ -511,7 +511,9 @@ const BibleStudy: React.FC = () => {
   >("read");
   const [currentBook, setCurrentBook] = useState<string>("Genesis");
   const [currentChapter, setCurrentChapter] = useState<number>(1);
-  const [currentLanguage, setCurrentLanguage] = useState<string>("en");
+  const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
+    return localStorage.getItem("bible-language") || "en";
+  });
   const [currentVersion, setCurrentVersion] = useState<string>("niv");
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -582,6 +584,7 @@ const BibleStudy: React.FC = () => {
   // Handle language change
   const handleLanguageChange = (newLanguage: string) => {
     setCurrentLanguage(newLanguage);
+    localStorage.setItem("bible-language", newLanguage);
     const availableVersions =
       BIBLE_VERSIONS_BY_LANGUAGE[
         newLanguage as keyof typeof BIBLE_VERSIONS_BY_LANGUAGE
@@ -590,6 +593,11 @@ const BibleStudy: React.FC = () => {
       setCurrentVersion(availableVersions[0].id);
     }
   };
+
+  // Persist language if changed elsewhere
+  useEffect(() => {
+    localStorage.setItem("bible-language", currentLanguage);
+  }, [currentLanguage]);
 
   // Get translations for current language
   const t = (key: string): string => {
@@ -1263,15 +1271,20 @@ const BibleStudy: React.FC = () => {
             position: "fixed",
             left: `${dragPosition.x}px`,
             top: `${dragPosition.y}px`,
-            cursor: isDragging ? "grabbing" : "grab",
             zIndex: 1001,
           }}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
           onDoubleClick={resetPosition}
-          title="Drag to move, double-click to reset position"
+          title="Double-click to reset position"
         >
-          <div className="drag-handle" title="Drag to reposition">
+          <div
+            className="drag-handle"
+            title="Drag to reposition"
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            style={{
+              cursor: isDragging ? "grabbing" : "grab",
+            }}
+          >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="9" cy="5" r="1" />
               <circle cx="15" cy="5" r="1" />

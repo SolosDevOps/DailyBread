@@ -2366,8 +2366,6 @@ body:has(.bible-study-container) .db-main {
 	min-width: 200px;
 	height: 80px;
 	transition: all 0.3s ease;
-	cursor: grab;
-	user-select: none;
 	display: flex;
 	align-items: center;
 	justify-content: center;

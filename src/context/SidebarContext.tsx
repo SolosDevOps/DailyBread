@@ -16,15 +16,15 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     // Load collapsed state from localStorage
-    const saved = localStorage.getItem('sidebar-collapsed');
+    const saved = localStorage.getItem("sidebar-collapsed");
     return saved ? JSON.parse(saved) : false;
   });
-  
+
   const [activeSection, setActiveSection] = useState(() => {
     // Load active section from localStorage, fallback to "feed"
-    return localStorage.getItem('active-section') || "feed";
+    return localStorage.getItem("active-section") || "feed";
   });
-  
+
   const location = useLocation();
 
   // Auto-detect active section based on current route
@@ -33,7 +33,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
 
     if (path === "/dashboard") {
       // For dashboard, don't override if we have a saved section
-      const savedSection = localStorage.getItem('active-section');
+      const savedSection = localStorage.getItem("active-section");
       if (!savedSection) {
         setActiveSection("feed");
       }
@@ -52,12 +52,12 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Persist sidebar collapsed state
   useEffect(() => {
-    localStorage.setItem('sidebar-collapsed', JSON.stringify(sidebarCollapsed));
+    localStorage.setItem("sidebar-collapsed", JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
   // Persist active section
   useEffect(() => {
-    localStorage.setItem('active-section', activeSection);
+    localStorage.setItem("active-section", activeSection);
   }, [activeSection]);
 
   const toggleSidebar = () => {

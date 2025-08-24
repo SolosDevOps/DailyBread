@@ -86,6 +86,14 @@ async function run() {
         profilePicture: "https://i.pravatar.cc/150?img=8",
       },
     }),
+    prisma.user.create({
+      data: {
+        username: "fakeuser",
+        email: "fakeuser@example.com",
+        password: passwordHash,
+        profilePicture: "https://i.pravatar.cc/150?img=9",
+      },
+    }),
   ]);
 
   const [alice, bob, charlie, diana, eve, frank, grace, henry] = users;
