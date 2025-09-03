@@ -119,9 +119,21 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handlePostUpdate = () => {
+  const handlePostUpdate = async () => {
     // Refresh posts after like/comment changes
-    loadProfile();
+    try {
+      if (id) {
+        const userPosts = await api.get<Post[]>(`/users/${id}/posts`);
+        setPosts((prevPosts) => {
+          return prevPosts.map((prevPost) => {
+            const updatedPost = userPosts.find((p) => p.id === prevPost.id);
+            return updatedPost || prevPost;
+          });
+        });
+      }
+    } catch (error) {
+      console.error("Failed to refresh posts:", error);
+    }
   };
 
   useEffect(() => {
@@ -209,8 +221,11 @@ const ProfilePage: React.FC = () => {
           // Load user's posts
           try {
             const userPosts = await api.get<Post[]>(`/users/${id}/posts`);
+            console.log("Fetched posts:", userPosts); // Add logging
             setPosts(userPosts);
-          } catch {
+          } catch (error) {
+            console.error("Error fetching posts:", error); // Add error logging
+            showToast({ message: "Failed to load posts", type: "error" });
             setPosts([]);
           }
         } catch (error: any) {

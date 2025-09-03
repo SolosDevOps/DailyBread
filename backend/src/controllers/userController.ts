@@ -119,7 +119,41 @@ export async function getUserPosts(req: Request, res: Response) {
       orderBy: { createdAt: "desc" },
       include: {
         author: {
-          select: { id: true, username: true },
+          select: {
+            id: true,
+            username: true,
+            profilePicture: true,
+          },
+        },
+        likes: {
+          select: {
+            id: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+                profilePicture: true,
+              },
+            },
+          },
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                profilePicture: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
         },
       },
     });

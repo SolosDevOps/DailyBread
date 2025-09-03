@@ -1044,15 +1044,6 @@ export async function addBookmark(req: Request, res: Response) {
     const payload = jwt.verify(token, JWT_SECRET) as { id: number };
     const { book, chapter, verse, text, note } = req.body;
 
-    console.log("Bookmark request data:", {
-      book,
-      chapter,
-      verse,
-      text,
-      note,
-      userId: payload.id,
-    });
-
     if (!book || !chapter || !verse || !text) {
       return res.status(400).json({ error: "Missing required fields" });
     }
@@ -1084,7 +1075,6 @@ export async function addBookmark(req: Request, res: Response) {
       },
     });
 
-    console.log("Bookmark created successfully:", bookmark);
     return res.status(201).json(bookmark);
   } catch (err: any) {
     console.error("Add bookmark error:", err);

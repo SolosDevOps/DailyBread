@@ -325,12 +325,14 @@ const PostComponent: React.FC<PostComponentProps> = ({
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>(post.comments || []);
   const [newComment, setNewComment] = useState("");
-  const [isLiked, setIsLiked] = useState(
-    post.likes?.some((like) => like.userId === user?.id) || false
-  );
-  const [likeCount, setLikeCount] = useState(
-    post._count?.likes || post.likes?.length || 0
-  );
+  // Update isLiked whenever post.likes changes
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+
+  useEffect(() => {
+    setIsLiked(post.likes?.some((like) => like.userId === user?.id) || false);
+    setLikeCount(post._count?.likes || post.likes?.length || 0);
+  }, [post.likes, post._count?.likes, user?.id]);
   const [commentCount, setCommentCount] = useState(
     post._count?.comments || post.comments?.length || 0
   );
@@ -419,6 +421,12 @@ const PostComponent: React.FC<PostComponentProps> = ({
         await api.post(`/posts/${post.id}/like`);
         setIsLiked(true);
         setLikeCount((prev) => prev + 1);
+      }
+      // After liking/unliking, get fresh post data to ensure consistency
+      const updatedPost = await api.get<Post>(`/posts/${post.id}`);
+      if (updatedPost) {
+        post.likes = updatedPost.likes;
+        post._count = updatedPost._count;
       }
       onUpdate?.();
     } catch (error) {
@@ -1056,57 +1064,109 @@ const PostComponent: React.FC<PostComponentProps> = ({
 
       {/* Bible Verse Popup */}
       {showVersePopup && selectedVerse && (
-        <div className="verse-popup-overlay">
-          <div className="verse-popup" ref={versePopupRef}>
+        <div className="verse-popup-overlay" onClick={closeVersePopup}>
+          <div
+            className="verse-popup"
+            ref={versePopupRef}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="verse-popup-header">
-              <h4>
-                {selectedVerse.book} {selectedVerse.chapter}:
-                {selectedVerse.verse}
-                {selectedVerse.endVerse &&
-                selectedVerse.endVerse !== selectedVerse.verse
-                  ? `-${selectedVerse.endVerse}`
-                  : ""}
-              </h4>
+              <div className="verse-popup-title-section">
+                <h4>
+                  {selectedVerse.book} {selectedVerse.chapter}:
+                  {selectedVerse.verse}
+                  {selectedVerse.endVerse &&
+                  selectedVerse.endVerse !== selectedVerse.verse
+                    ? `-${selectedVerse.endVerse}`
+                    : ""}
+                </h4>
+                <span className="verse-popup-subtitle">Holy Bible</span>
+              </div>
               <button className="verse-popup-close" onClick={closeVersePopup}>
-                ×
+                ✕
               </button>
             </div>
 
             <div className="verse-popup-content">
               {loadingVerse ? (
-                <div className="verse-loading">Loading verse...</div>
+                <div className="verse-loading">
+                  <span>Loading verse...</span>
+                </div>
               ) : verseData ? (
                 <div className="verse-text">
                   {verseData.verses && verseData.verses.length > 1 ? (
                     // Multiple verses - format each verse separately
-                    <div>
+                    <div className="verse-text-multiple">
                       {verseData.verses.map((v, index) => (
-                        <div key={index} style={{ marginBottom: "12px" }}>
-                          <strong>{v.verse}</strong> {v.text}
+                        <div key={index} className="verse-text-single">
+                          <span className="verse-number">{v.verse}</span>
+                          <span className="verse-content">{v.text}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
                     // Single verse
-                    <p>"{verseData.text}"</p>
+                    <p className="verse-content-single">{verseData.text}</p>
                   )}
-                  <span className="verse-reference">
-                    — {verseData.book} {verseData.chapter}:
+                  <div className="verse-reference">
+                    {verseData.book} {verseData.chapter}:
                     {verseData.verses && verseData.verses.length > 1
                       ? `${verseData.verses[0].verse}-${
                           verseData.verses[verseData.verses.length - 1].verse
                         }`
                       : verseData.verse}
-                  </span>
+                  </div>
                 </div>
               ) : (
-                <div className="verse-error">Failed to load verse</div>
+                <div className="verse-error">
+                  <span>📖</span>
+                  <p>Unable to load this verse</p>
+                  <small>Please try again later</small>
+                </div>
               )}
             </div>
 
             {verseData && (
               <div className="verse-popup-actions">
-                <button className="verse-bookmark-btn" onClick={bookmarkVerse}>
+                <button
+                  className="verse-action-btn verse-copy-btn"
+                  onClick={() => {
+                    const textToCopy =
+                      verseData.verses && verseData.verses.length > 1
+                        ? verseData.verses
+                            .map((v) => `${v.verse} ${v.text}`)
+                            .join(" ")
+                        : verseData.text;
+                    navigator.clipboard.writeText(
+                      `"${textToCopy}" - ${verseData.book} ${verseData.chapter}:${verseData.verse}`
+                    );
+                  }}
+                >
+                  📋 Copy
+                </button>
+                <button
+                  className="verse-action-btn verse-share-btn"
+                  onClick={() => {
+                    const shareText =
+                      verseData.verses && verseData.verses.length > 1
+                        ? verseData.verses
+                            .map((v) => `${v.verse} ${v.text}`)
+                            .join(" ")
+                        : verseData.text;
+                    if (navigator.share) {
+                      navigator.share({
+                        title: `${verseData.book} ${verseData.chapter}:${verseData.verse}`,
+                        text: `"${shareText}" - ${verseData.book} ${verseData.chapter}:${verseData.verse}`,
+                      });
+                    }
+                  }}
+                >
+                  🔗 Share
+                </button>
+                <button
+                  className="verse-action-btn verse-bookmark-btn"
+                  onClick={bookmarkVerse}
+                >
                   🔖 Bookmark
                 </button>
               </div>

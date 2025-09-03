@@ -514,7 +514,9 @@ const BibleStudy: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
     return localStorage.getItem("bible-language") || "en";
   });
-  const [currentVersion, setCurrentVersion] = useState<string>("niv");
+  const [currentVersion, setCurrentVersion] = useState<string>(() => {
+    return localStorage.getItem("bible-version") || "niv";
+  });
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -591,6 +593,7 @@ const BibleStudy: React.FC = () => {
       ];
     if (availableVersions && availableVersions.length > 0) {
       setCurrentVersion(availableVersions[0].id);
+      localStorage.setItem("bible-version", availableVersions[0].id);
     }
   };
 
@@ -598,6 +601,11 @@ const BibleStudy: React.FC = () => {
   useEffect(() => {
     localStorage.setItem("bible-language", currentLanguage);
   }, [currentLanguage]);
+
+  // Persist version if changed elsewhere
+  useEffect(() => {
+    localStorage.setItem("bible-version", currentVersion);
+  }, [currentVersion]);
 
   // Get translations for current language
   const t = (key: string): string => {
@@ -1481,7 +1489,10 @@ const BibleStudy: React.FC = () => {
                 <select
                   className="version-select"
                   value={currentVersion}
-                  onChange={(e) => setCurrentVersion(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentVersion(e.target.value);
+                    localStorage.setItem("bible-version", e.target.value);
+                  }}
                 >
                   {getAvailableVersions().map((version) => (
                     <option key={version.id} value={version.id}>
@@ -1939,7 +1950,10 @@ const BibleStudy: React.FC = () => {
                 <select
                   className="filter-select"
                   value={currentVersion}
-                  onChange={(e) => setCurrentVersion(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentVersion(e.target.value);
+                    localStorage.setItem("bible-version", e.target.value);
+                  }}
                 >
                   {getAvailableVersions().map((version) => (
                     <option key={version.id} value={version.id}>

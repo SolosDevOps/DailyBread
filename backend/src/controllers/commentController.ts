@@ -91,9 +91,9 @@ export async function createComment(req: Request, res: Response) {
 // Get comments for a post
 export async function getPostComments(req: Request, res: Response) {
   try {
-    const postId = parseInt(req.params.postId);
+    const postId = parseInt(req.params.id);
 
-    if (!postId) {
+    if (!postId || isNaN(postId)) {
       return res.status(400).json({ error: "Invalid post ID" });
     }
 

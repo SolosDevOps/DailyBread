@@ -34,25 +34,15 @@ export async function getPosts(req: Request, res: Response) {
   }
 
   try {
-    console.log(`User ${user.username} (ID: ${user.id}) is requesting posts`);
-
     // Get list of users this user is following
     const following = await prisma.follow.findMany({
       where: { followerId: user.id },
       select: { followingId: true },
     });
 
-    console.log(
-      `User is following: ${following
-        .map((f: any) => f.followingId)
-        .join(", ")}`
-    );
-
     const followingIds = following.map((f: any) => f.followingId);
     // Include user's own posts and posts from followed users
     followingIds.push(user.id);
-
-    console.log(`Will show posts from user IDs: ${followingIds.join(", ")}`);
 
     const whereClause = {
       authorId: {
@@ -94,12 +84,6 @@ export async function getPosts(req: Request, res: Response) {
         },
       },
     });
-
-    console.log(
-      `Returning ${posts.length} posts. Post authors: ${posts
-        .map((p) => `${p.author.username} (ID: ${p.author.id})`)
-        .join(", ")}`
-    );
 
     return res.json(posts);
   } catch (err: any) {

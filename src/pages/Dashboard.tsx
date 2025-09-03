@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useSidebar } from "../context/SidebarContext";
 import { useFeed } from "../context/FeedContext";
-import { useToast } from "../context/ToastContext";
+// useToast import removed - handled by PostComponent
 import Navbar from "../components/Navbar";
 import LeftSidebar from "../components/LeftSidebar";
 import BibleStudy from "../components/BibleStudy";
+import PostComponent from "../components/PostComponent";
 import "../styles/Dashboard.css";
 
 interface FriendUser {
@@ -49,34 +50,10 @@ interface Post {
   };
 }
 
-// Bible verse interfaces
-interface BibleVerse {
-  book: string;
-  chapter: number;
-  verse: number;
-  text: string;
-  // Add support for multiple verses
-  verses?: Array<{
-    book: string;
-    chapter: number;
-    verse: number;
-    text: string;
-  }>;
-}
+// Bible verse interfaces removed - handled by PostComponent
 
-interface VerseReference {
-  book: string;
-  chapter: number;
-  verse?: number;
-  endVerse?: number;
-  originalText: string;
-  startIndex: number;
-  endIndex: number;
-  // optional version hint (e.g., 'vbg' for Bulgarian)
-  version?: string;
-}
-
-// Bible books with abbreviations
+// Bible books with abbreviations (commented out - now handled by PostComponent)
+/*
 const BIBLE_BOOKS = [
   { name: "Genesis", abbreviations: ["Gen", "Ge", "Gn"] },
   { name: "Exodus", abbreviations: ["Exo", "Ex"] },
@@ -151,8 +128,10 @@ const BIBLE_BOOKS = [
   { name: "Jude", abbreviations: ["Jud", "Jd"] },
   { name: "Revelation", abbreviations: ["Rev", "Re", "Rv"] },
 ];
+*/
 
-// Bulgarian -> English book name mapping (full names and common synonyms)
+// Bulgarian mapping also commented out - handled by PostComponent
+/*
 const BG_BOOK_MAP: Record<string, string> = {
   // Стар завет
   Битие: "Genesis",
@@ -225,21 +204,9 @@ const BG_BOOK_MAP: Record<string, string> = {
   Юда: "Jude",
   Откровение: "Revelation",
 };
+*/
 
-// Utility: relative time
-function timeAgo(iso: string) {
-  const date = new Date(iso);
-  const diff = Date.now() - date.getTime();
-  const sec = Math.floor(diff / 1000);
-  if (sec < 60) return sec + "s ago";
-  const min = Math.floor(sec / 60);
-  if (min < 60) return min + "m ago";
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return hr + "h ago";
-  const day = Math.floor(hr / 24);
-  if (day < 7) return day + "d ago";
-  return date.toLocaleDateString();
-}
+// Utility functions moved to PostComponent
 
 const CreatePost: React.FC<{ onCreated: () => void }> = ({ onCreated }) => {
   const [title, setTitle] = useState("");
@@ -308,261 +275,29 @@ const CreatePost: React.FC<{ onCreated: () => void }> = ({ onCreated }) => {
 };
 
 const PostsList: React.FC = () => {
-  const { user } = useAuth();
+  // User and toast removed - now handled by PostComponent
   const { refreshKey } = useFeed();
-  const { showToast } = useToast();
-  const navigate = useNavigate();
+  // Navigate function removed - not needed for Dashboard
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
-  const [saving, setSaving] = useState(false);
+  // Edit-related state removed - handled by PostComponent
   const [actionError, setActionError] = useState<string | null>(null);
-  const [newComment, setNewComment] = useState<{ [postId: number]: string }>(
-    {}
-  );
-  const [showComments, setShowComments] = useState<{
-    [postId: number]: boolean;
-  }>({});
-  const [commentsLoading, setCommentsLoading] = useState<{
-    [postId: number]: boolean;
-  }>({});
-  const [likingPosts, setLikingPosts] = useState<Set<number>>(new Set());
+  // Comment input state removed - handled by PostComponent
+  // Comment state removed - handled by PostComponent
+  // Comment loading state removed - handled by PostComponent
+  // Liking state removed - handled by PostComponent
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     postId: number | null;
     postTitle: string;
   }>({ isOpen: false, postId: null, postTitle: "" });
   const [deleting, setDeleting] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-  const [savedPosts, setSavedPosts] = useState<Set<number>>(new Set());
-  const [shareModal, setShareModal] = useState<{
-    isOpen: boolean;
-    post: Post | null;
-  }>({ isOpen: false, post: null });
+  // Dropdown and share modal state removed - handled by PostComponent
 
-  // Read more/less state for posts
-  const [expandedPosts, setExpandedPosts] = useState<Set<number>>(new Set());
-  const [postsWithReadMore, setPostsWithReadMore] = useState<Set<number>>(
-    new Set()
-  );
+  // Read more/less state removed - handled by PostComponent
 
-  // Bible verse detection functions
-  const detectBibleVerses = (text: string): VerseReference[] => {
-    const verses: VerseReference[] = [];
-
-    BIBLE_BOOKS.forEach((book) => {
-      const allNames = [book.name, ...book.abbreviations];
-
-      allNames.forEach((bookName) => {
-        const pattern = new RegExp(
-          `(${bookName.replace(
-            /[.*+?^${}()|[\]\\]/g,
-            "\\$&"
-          )})\\s+(\\d+):(\\d+)(?:-(\\d+))?`,
-          "gi"
-        );
-
-        // Bulgarian book detection (full names and common short forms)
-        Object.keys(BG_BOOK_MAP).forEach((bgName) => {
-          const escaped = bgName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          const pattern = new RegExp(
-            `(${escaped})\\s+(\\d+):(\\d+)(?:-(\\d+))?`,
-            "gi"
-          );
-
-          let match;
-          let attempts = 0;
-          while ((match = pattern.exec(text)) !== null && attempts < 10) {
-            attempts++;
-            const chapter = parseInt(match[2]);
-            const verse = parseInt(match[3]);
-            const endVerse = match[4] ? parseInt(match[4]) : undefined;
-
-            verses.push({
-              book: BG_BOOK_MAP[bgName],
-              chapter,
-              verse,
-              endVerse,
-              originalText: match[0],
-              startIndex: match.index || 0,
-              endIndex: (match.index || 0) + match[0].length,
-              version: "vbg",
-            });
-          }
-        });
-
-        let match;
-        let attempts = 0;
-        while ((match = pattern.exec(text)) !== null && attempts < 10) {
-          attempts++;
-
-          const chapter = parseInt(match[2]);
-          const verse = parseInt(match[3]);
-          const endVerse = match[4] ? parseInt(match[4]) : undefined;
-
-          verses.push({
-            book: book.name,
-            chapter,
-            verse,
-            endVerse,
-            originalText: match[0],
-            startIndex: match.index || 0,
-            endIndex: (match.index || 0) + match[0].length,
-          });
-        }
-      });
-    });
-
-    const uniqueVerses = verses
-      .filter(
-        (verse, index, arr) =>
-          arr.findIndex((v) => v.startIndex === verse.startIndex) === index
-      )
-      .sort((a, b) => a.startIndex - b.startIndex);
-
-    return uniqueVerses;
-  };
-
-  const renderContentWithVerses = (content: string) => {
-    const verses = detectBibleVerses(content);
-
-    if (verses.length === 0) {
-      return content;
-    }
-
-    const parts = [];
-    let lastIndex = 0;
-
-    verses.forEach((verse, index) => {
-      if (verse.startIndex > lastIndex) {
-        parts.push(content.slice(lastIndex, verse.startIndex));
-      }
-
-      parts.push(
-        <span
-          key={`verse-${index}`}
-          className="bible-verse-reference"
-          onClick={() => handleVerseClick(verse)}
-          title={`Click to view ${verse.originalText}`}
-          style={{ cursor: "pointer" }}
-        >
-          {verse.originalText}
-        </span>
-      );
-
-      lastIndex = verse.endIndex;
-    });
-
-    if (lastIndex < content.length) {
-      parts.push(content.slice(lastIndex));
-    }
-
-    return parts;
-  };
-
-  // Bible verse popup states
-  const [showVersePopup, setShowVersePopup] = useState(false);
-  const [selectedVerse, setSelectedVerse] = useState<VerseReference | null>(
-    null
-  );
-  const [verseData, setVerseData] = useState<BibleVerse | null>(null);
-  const [loadingVerse, setLoadingVerse] = useState(false);
-
-  const handleVerseClick = async (verse: VerseReference) => {
-    setSelectedVerse(verse);
-    setShowVersePopup(true);
-    setLoadingVerse(true);
-
-    try {
-      const response = await api.get<{
-        reference: string;
-        verses: Array<{
-          book: string;
-          chapter: number;
-          verse: number;
-          text: string;
-          version: string;
-        }>;
-        version: string;
-      }>(
-        `/bible/verse?book=${encodeURIComponent(verse.book)}&chapter=${
-          verse.chapter
-        }&verse=${verse.verse}${
-          verse.endVerse ? `&endVerse=${verse.endVerse}` : ""
-        }${
-          verse.version ? `&version=${encodeURIComponent(verse.version)}` : ""
-        }`
-      );
-
-      if (response.verses && response.verses.length > 0) {
-        if (response.verses.length === 1) {
-          // Single verse
-          const firstVerse = response.verses[0];
-          setVerseData({
-            book: firstVerse.book,
-            chapter: firstVerse.chapter,
-            verse: firstVerse.verse,
-            text: firstVerse.text,
-          });
-        } else {
-          // Multiple verses (verse range)
-          const firstVerse = response.verses[0];
-          setVerseData({
-            book: firstVerse.book,
-            chapter: firstVerse.chapter,
-            verse: firstVerse.verse,
-            text: response.verses
-              .map((v) => `${v.verse} ${v.text}`)
-              .join("\n\n"),
-            verses: response.verses, // Store all verses for reference
-          });
-        }
-      } else {
-        throw new Error("No verses found in response");
-      }
-    } catch (error) {
-      console.error("Failed to fetch verse:", error);
-      showToast({ message: "Failed to load verse", type: "error" });
-    } finally {
-      setLoadingVerse(false);
-    }
-  };
-
-  const closeVersePopup = () => {
-    setShowVersePopup(false);
-    setSelectedVerse(null);
-    setVerseData(null);
-  };
-
-  const bookmarkVerse = async () => {
-    if (!selectedVerse || !user || !verseData) return;
-
-    try {
-      await api.post("/bible/bookmarks", {
-        book: selectedVerse.book,
-        chapter: selectedVerse.chapter,
-        verse: selectedVerse.verse,
-        text: verseData.text,
-      });
-      showToast({ message: "Verse bookmarked!", type: "success" });
-      closeVersePopup();
-    } catch (error: any) {
-      console.error("Failed to bookmark verse:", error);
-
-      // Handle already bookmarked case
-      if (error.message === "Verse already bookmarked") {
-        showToast({
-          message: "This verse is already bookmarked!",
-          type: "warning",
-        });
-      } else {
-        showToast({ message: "Failed to bookmark verse", type: "error" });
-      }
-    }
-  };
+  // Bible verse detection and popup functions removed - handled by PostComponent
 
   // Updated load: supports silent refresh and scroll preservation
   const load = useCallback(
@@ -596,180 +331,13 @@ const PostsList: React.FC = () => {
     []
   );
 
-  // Read more/less helper functions
-  const togglePostExpanded = (postId: number) => {
-    setExpandedPosts((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
-      return newSet;
-    });
-  };
-
-  const checkIfPostNeedsReadMore = (content: string, postId: number) => {
-    // Simple character-based check - adjust threshold as needed
-    const threshold = 400; // Approximately 3-4 lines of text
-    if (content.length > threshold) {
-      setPostsWithReadMore((prev) => new Set(prev).add(postId));
-    }
-  };
-
-  // Check posts for read more when they load
-  useEffect(() => {
-    posts.forEach((post) => {
-      checkIfPostNeedsReadMore(post.content, post.id);
-    });
-  }, [posts]);
-
-  const toggleLike = async (postId: number) => {
-    if (likingPosts.has(postId)) return; // Prevent double-clicking
-
-    setLikingPosts((prev) => new Set(prev).add(postId));
-
-    // Optimistic update - immediately update UI
-    const currentUser = user!;
-    setPosts((prev) =>
-      prev.map((post) => {
-        if (post.id !== postId) return post;
-
-        const wasLiked =
-          post.likes?.some((like) => like.userId === currentUser.id) || false;
-
-        if (wasLiked) {
-          // Remove like optimistically
-          return {
-            ...post,
-            likes:
-              post.likes?.filter((like) => like.userId !== currentUser.id) ||
-              [],
-            _count: {
-              ...post._count,
-              likes: (post._count?.likes || 0) - 1,
-              comments: post._count?.comments || 0,
-            },
-          };
-        } else {
-          // Add like optimistically
-          const newLike: Like = {
-            id: Date.now(), // Temporary ID
-            userId: currentUser.id,
-            user: {
-              id: currentUser.id,
-              username: currentUser.username,
-              profilePicture: currentUser.profilePicture || undefined,
-            },
-          };
-          return {
-            ...post,
-            likes: [...(post.likes || []), newLike],
-            _count: {
-              ...post._count,
-              likes: (post._count?.likes || 0) + 1,
-              comments: post._count?.comments || 0,
-            },
-          };
-        }
-      })
-    );
-
-    try {
-      await api.post(`/likes/toggle`, { postId });
-      // Silent sync to prevent scroll jump
-      await load({ silent: true, preserveScroll: true });
-    } catch (e: any) {
-      console.error("Failed to toggle like:", e);
-      // Revert by syncing from server silently
-      await load({ silent: true, preserveScroll: true });
-    } finally {
-      setLikingPosts((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(postId);
-        return newSet;
-      });
-    }
-  };
-
-  const loadComments = async (postId: number) => {
-    if (commentsLoading[postId]) return;
-
-    setCommentsLoading((prev) => ({ ...prev, [postId]: true }));
-    try {
-      const comments = await api.get<Comment[]>(`/comments/${postId}`);
-      setPosts((prev) =>
-        prev.map((post) => (post.id === postId ? { ...post, comments } : post))
-      );
-      setShowComments((prev) => ({ ...prev, [postId]: true }));
-    } catch (e: any) {
-      console.error("Failed to load comments:", e);
-    } finally {
-      setCommentsLoading((prev) => ({ ...prev, [postId]: false }));
-    }
-  };
-
-  const addComment = async (postId: number) => {
-    const content = newComment[postId]?.trim();
-    if (!content) return;
-
-    try {
-      await api.post("/comments", {
-        postId,
-        content,
-      });
-      setNewComment((prev) => ({ ...prev, [postId]: "" }));
-      // Reload comments for this post
-      loadComments(postId);
-      // Silent refresh to update comment count without jumping
-      await load({ silent: true, preserveScroll: true });
-    } catch (e: any) {
-      console.error("Failed to add comment:", e);
-    }
-  };
-
-  const deleteComment = async (commentId: number, postId: number) => {
-    try {
-      await api.del(`/comments/${commentId}`);
-      // Reload comments for this post to reflect the deletion
-      loadComments(postId);
-      // Silent refresh to update comment count without jumping
-      await load({ silent: true, preserveScroll: true });
-    } catch (e: any) {
-      console.error("Failed to delete comment:", e);
-    }
-  };
-
-  const isLiked = (post: Post) => {
-    return post.likes?.some((like) => like.userId === user?.id) || false;
-  };
-
-  const getLikeCount = (post: Post) => {
-    return post._count?.likes || post.likes?.length || 0;
-  };
-
-  const getCommentCount = (post: Post) => {
-    return post._count?.comments || post.comments?.length || 0;
-  };
+  // Helper functions removed - handled by PostComponent
 
   useEffect(() => {
     load();
   }, [load, refreshKey]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        openDropdown &&
-        !(event.target as Element).closest(".db-post-dropdown")
-      ) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openDropdown]);
+  // Dropdown click outside handler removed - handled by PostComponent
 
   const deletePost = async (id: number) => {
     setDeleting(true);
@@ -785,172 +353,9 @@ const PostsList: React.FC = () => {
     }
   };
 
-  const openDeleteModal = (post: Post) => {
-    setDeleteModal({
-      isOpen: true,
-      postId: post.id,
-      postTitle: post.title,
-    });
-  };
+  // Modal and dropdown functions removed - handled by PostComponent
 
-  const toggleDropdown = (postId: number) => {
-    setOpenDropdown(openDropdown === postId ? null : postId);
-  };
-
-  const closeDropdown = () => {
-    setOpenDropdown(null);
-  };
-
-  const sharePost = async (post: Post) => {
-    closeDropdown();
-
-    // Try native sharing first if available
-    if (navigator.share) {
-      try {
-        const shareData = {
-          title: `${post.title} - Daily Bread`,
-          text: post.content,
-          url: `${window.location.origin}/dashboard#post-${post.id}`,
-        };
-
-        await navigator.share(shareData);
-        showToast({
-          type: "success",
-          message: "Post shared successfully!",
-        });
-        return;
-      } catch (err: any) {
-        // User cancelled sharing or error occurred
-        if (err.name !== "AbortError") {
-          console.log("Native sharing failed, falling back to modal");
-        } else {
-          return; // User cancelled, don't show fallback
-        }
-      }
-    }
-
-    // Fallback to custom share modal
-    setShareModal({ isOpen: true, post });
-  };
-
-  const copyToClipboard = async (post: Post) => {
-    try {
-      const shareUrl = `${window.location.origin}/dashboard#post-${post.id}`;
-      const text = `${post.title}\n\n${post.content}\n\nShared from Daily Bread: ${shareUrl}`;
-
-      await navigator.clipboard.writeText(text);
-      showToast({
-        type: "success",
-        message: "Post copied to clipboard!",
-      });
-    } catch (err) {
-      showToast({
-        type: "error",
-        message: "Failed to copy to clipboard",
-      });
-      console.error("Failed to copy to clipboard:", err);
-    }
-  };
-
-  const shareToSocialMedia = (post: Post, platform: string) => {
-    const shareUrl = `${window.location.origin}/dashboard#post-${post.id}`;
-    const text = `${post.title} - ${post.content}`;
-    const encodedText = encodeURIComponent(text);
-    const encodedUrl = encodeURIComponent(shareUrl);
-
-    let shareLink = "";
-
-    switch (platform) {
-      case "twitter":
-        shareLink = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
-        break;
-      case "facebook":
-        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`;
-        break;
-      case "whatsapp":
-        shareLink = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
-        break;
-      case "telegram":
-        shareLink = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
-        break;
-      case "email":
-        shareLink = `mailto:?subject=${encodeURIComponent(
-          post.title + " - Daily Bread"
-        )}&body=${encodedText}%0A%0A${encodedUrl}`;
-        break;
-      default:
-        return;
-    }
-
-    window.open(shareLink, "_blank");
-    setShareModal({ isOpen: false, post: null });
-    showToast({
-      type: "success",
-      message: `Sharing to ${platform}...`,
-    });
-  };
-
-  const closeShareModal = () => {
-    setShareModal({ isOpen: false, post: null });
-  };
-
-  const toggleSavePost = (postId: number) => {
-    closeDropdown();
-    setSavedPosts((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
-      return newSet;
-    });
-    // Here you could also make an API call to save/unsave the post
-  };
-
-  const navigateToProfile = (userId: number) => {
-    navigate(`/profile/${userId}`);
-  };
-
-  const editPost = (post: Post) => {
-    closeDropdown();
-    startEdit(post);
-  };
-
-  const deletePostAction = (post: Post) => {
-    closeDropdown();
-    openDeleteModal(post);
-  };
-
-  const startEdit = (post: Post) => {
-    setEditingId(post.id);
-    setEditTitle(post.title);
-    setEditContent(post.content);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditTitle("");
-    setEditContent("");
-  };
-
-  const saveEdit = async () => {
-    if (!editingId) return;
-    setSaving(true);
-    setActionError(null);
-    try {
-      await api.put(`/posts/${editingId}`, {
-        title: editTitle.trim(),
-        content: editContent.trim(),
-      });
-      setEditingId(null);
-      load();
-    } catch (e: any) {
-      setActionError(e.message || "Failed to save");
-    } finally {
-      setSaving(false);
-    }
-  };
+  // All sharing functions removed - handled by PostComponent
 
   if (loading) {
     return (
@@ -965,6 +370,19 @@ const PostsList: React.FC = () => {
       </div>
     );
   }
+
+  // PostComponent-compatible handlers
+  const handlePostEdit = () => {
+    // Dashboard doesn't support inline editing
+  };
+
+  const handlePostDelete = async (postId: number) => {
+    await deletePost(postId);
+  };
+
+  const handlePostUpdate = () => {
+    load({ silent: true }); // Silent refresh
+  };
 
   if (error) {
     return (
@@ -986,728 +404,24 @@ const PostsList: React.FC = () => {
           <p>No posts yet. Be the first to share something!</p>
         </div>
       ) : (
-        posts.map((post) => (
-          <article key={post.id} className="db-post">
-            <div className="db-post-header">
-              <div
-                className="db-post-avatar"
-                onClick={() => navigateToProfile(post.author.id)}
-                style={{ cursor: "pointer" }}
-                title={`Go to ${post.author.username}'s profile`}
-              >
-                {post.author.profilePicture ? (
-                  <img
-                    src={post.author.profilePicture}
-                    alt={`${post.author.username}'s profile`}
-                    className="db-avatar-img"
-                  />
-                ) : (
-                  <div className="db-avatar-placeholder">
-                    {post.author.username.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="db-post-meta">
-                <div
-                  className="db-post-author"
-                  onClick={() => navigateToProfile(post.author.id)}
-                  style={{ cursor: "pointer" }}
-                  title={`Go to ${post.author.username}'s profile`}
-                >
-                  {post.author.username}
-                </div>
-                <div className="db-post-time">{timeAgo(post.createdAt)}</div>
-              </div>
-              <div className="db-post-dropdown">
-                <button
-                  type="button"
-                  className="db-dropdown-trigger"
-                  onClick={() => toggleDropdown(post.id)}
-                  aria-label="Post options"
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <circle cx="12" cy="5" r="1"></circle>
-                    <circle cx="12" cy="19" r="1"></circle>
-                  </svg>
-                </button>
-                {openDropdown === post.id && (
-                  <div className="db-dropdown-menu">
-                    {user?.id === post.authorId ? (
-                      <>
-                        <button
-                          type="button"
-                          className="db-dropdown-item"
-                          onClick={() => editPost(post)}
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="m18 2 4 4-14 14H4v-4L18 2z"></path>
-                            <path d="m14.5 5.5 4 4"></path>
-                          </svg>
-                          Edit post
-                        </button>
-                        <button
-                          type="button"
-                          className="db-dropdown-item"
-                          onClick={() => sharePost(post)}
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <circle cx="18" cy="5" r="3"></circle>
-                            <circle cx="6" cy="12" r="3"></circle>
-                            <circle cx="18" cy="19" r="3"></circle>
-                            <line
-                              x1="8.59"
-                              y1="13.51"
-                              x2="15.42"
-                              y2="17.49"
-                            ></line>
-                            <line
-                              x1="15.41"
-                              y1="6.51"
-                              x2="8.59"
-                              y2="10.49"
-                            ></line>
-                          </svg>
-                          Share
-                        </button>
-                        <button
-                          type="button"
-                          className="db-dropdown-item danger"
-                          onClick={() => deletePostAction(post)}
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <polyline points="3,6 5,6 21,6"></polyline>
-                            <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                          </svg>
-                          Delete
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          className="db-dropdown-item"
-                          onClick={() => toggleSavePost(post.id)}
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="m19,21-7-4-7,4V5a2,2 0 0,1,2-2H17a2,2 0 0,1,2,2V21z"></path>
-                          </svg>
-                          {savedPosts.has(post.id) ? "Unsave" : "Save"}
-                        </button>
-                        <button
-                          type="button"
-                          className="db-dropdown-item"
-                          onClick={() => sharePost(post)}
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <circle cx="18" cy="5" r="3"></circle>
-                            <circle cx="6" cy="12" r="3"></circle>
-                            <circle cx="18" cy="19" r="3"></circle>
-                            <line
-                              x1="8.59"
-                              y1="13.51"
-                              x2="15.42"
-                              y2="17.49"
-                            ></line>
-                            <line
-                              x1="15.41"
-                              y1="6.51"
-                              x2="8.59"
-                              y2="10.49"
-                            ></line>
-                          </svg>
-                          Share
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {editingId === post.id ? (
-              <div className="db-edit-form">
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="db-edit-title"
-                  placeholder="Post title"
-                />
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="db-edit-content"
-                  placeholder="Post content"
-                  rows={4}
-                />
-                <div className="db-edit-actions">
-                  <button
-                    onClick={saveEdit}
-                    disabled={saving}
-                    className="db-btn-primary"
-                  >
-                    {saving ? "Saving..." : "Save"}
-                  </button>
-                  <button onClick={cancelEdit} className="db-btn-ghost">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="db-post-content">
-                <h3 className="db-post-title">{post.title}</h3>
-                <p
-                  className={`db-post-body ${
-                    !expandedPosts.has(post.id) &&
-                    postsWithReadMore.has(post.id)
-                      ? "db-post-body-collapsed"
-                      : ""
-                  }`}
-                >
-                  {renderContentWithVerses(post.content)}
-                </p>
-                {postsWithReadMore.has(post.id) && (
-                  <button
-                    className="db-read-more"
-                    onClick={() => togglePostExpanded(post.id)}
-                  >
-                    {expandedPosts.has(post.id) ? "Read less" : "Read more"}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Post interactions */}
-            <div className="db-post-stats">
-              <span className="db-stat">
-                {getLikeCount(post)}{" "}
-                {getLikeCount(post) === 1 ? "like" : "likes"}
-              </span>
-              <span className="db-stat">
-                {getCommentCount(post)}{" "}
-                {getCommentCount(post) === 1 ? "comment" : "comments"}
-              </span>
-            </div>
-
-            <div className="db-post-actions-bar">
-              <button
-                type="button"
-                className={`db-action-btn ${isLiked(post) ? "liked" : ""} ${
-                  likingPosts.has(post.id) ? "loading" : ""
-                }`}
-                onClick={() => toggleLike(post.id)}
-                disabled={likingPosts.has(post.id)}
-              >
-                <span className="db-action-icon">
-                  {likingPosts.has(post.id) ? (
-                    <svg
-                      className="loading-spinner"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeDasharray="31.416"
-                        strokeDashoffset="31.416"
-                      >
-                        <animate
-                          attributeName="stroke-dasharray"
-                          dur="2s"
-                          values="0 31.416;15.708 15.708;0 31.416"
-                          repeatCount="indefinite"
-                        />
-                        <animate
-                          attributeName="stroke-dashoffset"
-                          dur="2s"
-                          values="0;-15.708;-31.416"
-                          repeatCount="indefinite"
-                        />
-                      </circle>
-                    </svg>
-                  ) : isLiked(post) ? (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                    </svg>
-                  ) : (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                  )}
-                </span>
-                <span>Like</span>
-              </button>
-
-              <button
-                type="button"
-                className="db-action-btn"
-                onClick={() => {
-                  if (showComments[post.id]) {
-                    setShowComments((prev) => ({ ...prev, [post.id]: false }));
-                  } else {
-                    loadComments(post.id);
-                  }
-                }}
-              >
-                <span className="db-action-icon">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
-                </span>
-                <span>Comment</span>
-              </button>
-
-              <button
-                type="button"
-                className="db-action-btn"
-                onClick={() => sharePost(post)}
-              >
-                <span className="db-action-icon">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="18" cy="5" r="3"></circle>
-                    <circle cx="6" cy="12" r="3"></circle>
-                    <circle cx="18" cy="19" r="3"></circle>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                  </svg>
-                </span>
-                <span>Share</span>
-              </button>
-            </div>
-
-            {/* Comments section */}
-            {showComments[post.id] && (
-              <div className="db-comments-section">
-                {/* Add comment form */}
-                <div className="db-comment-form">
-                  <div className="db-comment-avatar">
-                    {user?.profilePicture ? (
-                      <img
-                        src={user.profilePicture}
-                        alt="Your profile"
-                        className="db-avatar-img"
-                      />
-                    ) : (
-                      <div className="db-avatar-placeholder">
-                        {user?.username?.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="db-comment-input-container">
-                    <input
-                      type="text"
-                      placeholder="Write a comment..."
-                      value={newComment[post.id] || ""}
-                      onChange={(e) =>
-                        setNewComment((prev) => ({
-                          ...prev,
-                          [post.id]: e.target.value,
-                        }))
-                      }
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          addComment(post.id);
-                        }
-                      }}
-                      className="db-comment-input"
-                    />
-                    <button
-                      onClick={() => addComment(post.id)}
-                      disabled={!newComment[post.id]?.trim()}
-                      className="db-comment-submit"
-                    >
-                      Post
-                    </button>
-                  </div>
-                </div>
-
-                {/* Comments list */}
-                <div className="db-comments-list">
-                  {commentsLoading[post.id] ? (
-                    <div className="db-comment-loading">
-                      Loading comments...
-                    </div>
-                  ) : (
-                    post.comments?.map((comment) => (
-                      <div key={comment.id} className="db-comment">
-                        <div className="db-comment-avatar">
-                          {comment.user?.profilePicture ? (
-                            <img
-                              src={comment.user.profilePicture}
-                              alt={`${
-                                comment.user.username || "User"
-                              }'s profile`}
-                              className="db-avatar-img"
-                            />
-                          ) : (
-                            <div className="db-avatar-placeholder">
-                              {comment.user?.username
-                                ?.charAt(0)
-                                .toUpperCase() || "?"}
-                            </div>
-                          )}
-                        </div>
-                        <div className="db-comment-content">
-                          <div className="db-comment-bubble">
-                            <div className="db-comment-header">
-                              <div className="db-comment-author">
-                                {comment.user?.username || "Unknown User"}
-                              </div>
-                              {user?.id === comment.userId && (
-                                <button
-                                  type="button"
-                                  className="db-comment-delete"
-                                  onClick={() =>
-                                    deleteComment(comment.id, post.id)
-                                  }
-                                  title="Delete comment"
-                                  aria-label="Delete comment"
-                                >
-                                  <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <polyline points="3,6 5,6 21,6"></polyline>
-                                    <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
-                                    <line
-                                      x1="10"
-                                      y1="11"
-                                      x2="10"
-                                      y2="17"
-                                    ></line>
-                                    <line
-                                      x1="14"
-                                      y1="11"
-                                      x2="14"
-                                      y2="17"
-                                    ></line>
-                                  </svg>
-                                </button>
-                              )}
-                            </div>
-                            <div className="db-comment-text">
-                              {comment.content}
-                            </div>
-                          </div>
-                          <div className="db-comment-time">
-                            {timeAgo(comment.createdAt)}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </article>
-        ))
-      )}
-
-      {/* Bible Verse Popup */}
-      {showVersePopup && selectedVerse && (
-        <div className="verse-popup-overlay" onClick={closeVersePopup}>
-          <div className="verse-popup" onClick={(e) => e.stopPropagation()}>
-            <div className="verse-popup-header">
-              <h4>
-                {selectedVerse.book} {selectedVerse.chapter}:
-                {selectedVerse.verse}
-                {selectedVerse.endVerse &&
-                selectedVerse.endVerse !== selectedVerse.verse
-                  ? `-${selectedVerse.endVerse}`
-                  : ""}
-              </h4>
-              <button className="verse-popup-close" onClick={closeVersePopup}>
-                ×
-              </button>
-            </div>
-
-            <div className="verse-popup-content">
-              {loadingVerse ? (
-                <div className="verse-loading">Loading verse...</div>
-              ) : verseData ? (
-                <div className="verse-text">
-                  {verseData.verses && verseData.verses.length > 1 ? (
-                    // Multiple verses - format each verse separately
-                    <div>
-                      {verseData.verses.map((v, index) => (
-                        <div key={index} style={{ marginBottom: "12px" }}>
-                          <strong>{v.verse}</strong> {v.text}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    // Single verse
-                    <p>"{verseData.text}"</p>
-                  )}
-                  <span className="verse-reference">
-                    — {verseData.book} {verseData.chapter}:
-                    {verseData.verses && verseData.verses.length > 1
-                      ? `${verseData.verses[0].verse}-${
-                          verseData.verses[verseData.verses.length - 1].verse
-                        }`
-                      : verseData.verse}
-                  </span>
-                </div>
-              ) : (
-                <div className="verse-error">Failed to load verse</div>
-              )}
-            </div>
-
-            {verseData && (
-              <div className="verse-popup-actions">
-                <button className="verse-bookmark-btn" onClick={bookmarkVerse}>
-                  🔖 Bookmark
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="db-posts-container">
+          {posts.map((post) => (
+            <PostComponent
+              key={post.id}
+              post={post}
+              onEdit={handlePostEdit}
+              onDelete={handlePostDelete}
+              onUpdate={handlePostUpdate}
+              isOwnProfile={false}
+              enableInlineEdit={false}
+            />
+          ))}
         </div>
       )}
 
-      {/* Share Modal */}
-      {shareModal.isOpen && shareModal.post && (
-        <div className="db-modal-overlay" onClick={closeShareModal}>
-          <div
-            className="db-modal db-share-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="db-modal-header">
-              <h3>Share Post</h3>
-              <button
-                type="button"
-                className="db-modal-close"
-                onClick={closeShareModal}
-                aria-label="Close share modal"
-              >
-                ×
-              </button>
-            </div>
-            <div className="db-modal-body">
-              <div className="db-share-preview">
-                <h4>{shareModal.post.title}</h4>
-                <p>
-                  {shareModal.post.content.length > 100
-                    ? `${shareModal.post.content.substring(0, 100)}...`
-                    : shareModal.post.content}
-                </p>
-              </div>
+      {/* Bible Verse Popup removed - handled by PostComponent */}
 
-              <div className="db-share-options">
-                <div className="db-share-section">
-                  <h5>Copy Link</h5>
-                  <button
-                    type="button"
-                    className="db-share-option"
-                    onClick={() => copyToClipboard(shareModal.post!)}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <rect
-                        x="9"
-                        y="9"
-                        width="13"
-                        height="13"
-                        rx="2"
-                        ry="2"
-                      ></rect>
-                      <path d="m5 15-4-4 4-4"></path>
-                      <path d="m11 9-4-4 4-4"></path>
-                    </svg>
-                    Copy to Clipboard
-                  </button>
-                </div>
-
-                <div className="db-share-section">
-                  <h5>Share on Social Media</h5>
-                  <div className="db-share-grid">
-                    <button
-                      type="button"
-                      className="db-share-option db-share-twitter"
-                      onClick={() =>
-                        shareToSocialMedia(shareModal.post!, "twitter")
-                      }
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
-                      </svg>
-                      Twitter
-                    </button>
-
-                    <button
-                      type="button"
-                      className="db-share-option db-share-facebook"
-                      onClick={() =>
-                        shareToSocialMedia(shareModal.post!, "facebook")
-                      }
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path>
-                      </svg>
-                      Facebook
-                    </button>
-
-                    <button
-                      type="button"
-                      className="db-share-option db-share-whatsapp"
-                      onClick={() =>
-                        shareToSocialMedia(shareModal.post!, "whatsapp")
-                      }
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488z"></path>
-                      </svg>
-                      WhatsApp
-                    </button>
-
-                    <button
-                      type="button"
-                      className="db-share-option db-share-telegram"
-                      onClick={() =>
-                        shareToSocialMedia(shareModal.post!, "telegram")
-                      }
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"></path>
-                      </svg>
-                      Telegram
-                    </button>
-
-                    <button
-                      type="button"
-                      className="db-share-option db-share-email"
-                      onClick={() =>
-                        shareToSocialMedia(shareModal.post!, "email")
-                      }
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="m4 4 16 0 0 16-16 0z"></path>
-                        <path d="m22 6-10 7L2 6"></path>
-                      </svg>
-                      Email
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Share Modal removed - handled by PostComponent */}
 
       {/* Delete Confirmation Modal */}
       {deleteModal.isOpen && (
@@ -1828,46 +542,7 @@ const PostsList: React.FC = () => {
         </div>
       )}
 
-      {/* Bible Verse Popup */}
-      {showVersePopup && selectedVerse && (
-        <div className="verse-popup-overlay" onClick={closeVersePopup}>
-          <div className="verse-popup" onClick={(e) => e.stopPropagation()}>
-            <div className="verse-popup-header">
-              <h4 className="verse-popup-title">
-                {selectedVerse.book} {selectedVerse.chapter}:
-                {selectedVerse.verse}
-                {selectedVerse.endVerse && `-${selectedVerse.endVerse}`}
-              </h4>
-              <button className="verse-popup-close" onClick={closeVersePopup}>
-                ×
-              </button>
-            </div>
-
-            <div className="verse-popup-content">
-              {loadingVerse ? (
-                <div className="verse-loading">Loading verse...</div>
-              ) : verseData ? (
-                <div className="verse-text">
-                  <p>"{verseData.text}"</p>
-                  <span className="verse-reference">
-                    — {verseData.book} {verseData.chapter}:{verseData.verse}
-                  </span>
-                </div>
-              ) : (
-                <div className="verse-error">Failed to load verse</div>
-              )}
-            </div>
-
-            {verseData && (
-              <div className="verse-popup-actions">
-                <button className="verse-bookmark-btn" onClick={bookmarkVerse}>
-                  🔖 Bookmark
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Bible Verse Popup removed - handled by PostComponent */}
     </div>
   );
 };
